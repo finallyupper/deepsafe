@@ -1,0 +1,25 @@
+# config.yaml
+train:
+  batch_size: 16
+  lr: 0.0005 
+  epoch: 2500
+  start_decode: 30 # d_iter
+  clip: 15
+  message_size: 4 # 15
+  T_max: 50 
+  name: ckpt-new 
+  lambda_val: 2 # beta
+  alpha_val: 0.5 # alpha
+  
+  trump_path: /content/drive/MyDrive/prometheus/deepsafe/data/winterFace/winterFace
+  cage_path: /content/drive/MyDrive/prometheus/deepsafe/data/karinaFace/karinaFace
+  
+test:
+  batch_size: 2 # 16
+  message_size: 15
+  quality: 50 # JPEG quality
+
+  model_path: /data/yoojinoh/def/250122_winkar_train/ckpt-new/ckpt_best_lam2_al0.5.pt #/data/yoojinoh/def/250118_winkar/save/ckpt-new/_2_0.5_best.pt
+  trump_path: /data/yoojinoh/def/celeb/winterEnd
+  cage_path: /data/yoojinoh/def/celeb/karinaEnd 
+  save_path: /data/yoojinoh/def/250123_winkar_eval
