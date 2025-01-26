@@ -1,6 +1,6 @@
 # config.yaml
 train:
-  batch_size: 16
+  batch_size: 32
   lr: 0.0005 
   epoch: 2500
   start_decode: 30 # d_iter
@@ -11,8 +11,8 @@ train:
   lambda_val: 2 # beta
   alpha_val: 0.5 # alpha
   
-  trump_path: /content/drive/MyDrive/prometheus/deepsafe/data/winterFace/winterFace
-  cage_path: /content/drive/MyDrive/prometheus/deepsafe/data/karinaFace/karinaFace
+  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/winterFace
+  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/karinaFace
   
 test:
   batch_size: 2 # 16

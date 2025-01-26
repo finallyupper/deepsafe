@@ -6,8 +6,8 @@ from decoder_fs import Decoder
 from faceswap_pytorch.models import Autoencoder_df
 
 CHECKPOINTS = {
-    'trump_cage' : '/data/yoojinoh/def/241116_faceswap_160/checkpoint/autoencoder_160.t7', 
-    'winter_karina': '/content/drive/MyDrive/prometheus/deepsafe/data/ae_win_kar_160.t7'
+    'trump_cage' : '/data1/yoojinoh/def/241116_faceswap_160/checkpoint/autoencoder_160.t7', 
+    'winter_karina': '/data1/yoojinoh/def/250101_faceswap_160/checkpoint/ae_win_kar_160.t7'
 }
 
 class DualDefense(nn.Module):

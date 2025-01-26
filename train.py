@@ -60,9 +60,9 @@ def train(configs,
         model.encoder.train()
         model.decoder.train()
         model.adv_model.train()
-
-
-        for trump_train_x, cage_train_x, in tqdm(zip(train_loader_1, train_loader_2), desc="Processing", total=len(train_loader_1)):
+        
+        totlen = min(len(train_loader_1), len(train_loader_2))
+        for trump_train_x, cage_train_x, in tqdm(zip(train_loader_1, train_loader_2), desc="Processing", total=totlen):
             trump_train_x = trump_train_x.to(device) 
             cage_train_x = cage_train_x.to(device)
 
@@ -145,15 +145,6 @@ def train(configs,
             _encoded_trump = encoded_trump.detach() 
             _encoded_cage = encoded_cage.detach() 
 
-            # def ycbcr_images(cover_ybr, stego_ybr, device):
-            #     cover_ybr = [torch.tensor(cv2.cvtColor(x.cpu().numpy().transpose(1, 2, 0), cv2.COLOR_BGR2YCrCb), dtype=torch.float32, 
-            #                   requires_grad=True).to(device) for x in cover_ybr]
-            #     stego_ybr = [torch.tensor(cv2.cvtColor(x.cpu().numpy().transpose(1, 2, 0), cv2.COLOR_BGR2YCrCb), dtype=torch.float32, 
-            #                   requires_grad=True).to(device) for x in stego_ybr]
-            #     dwtimage = DWTForward(J=1, mode='zero', wave='haar').to(device)
-            #     stego_Yl, stego_Yh = dwtimage(stego_ybr[:, 0, :, :].unsqueeze(1).to(device))
-            #     cover_Yl, cover_Yh = dwtimage(cover_ybr[:, 0, :, :].unsqueeze(1).to(device))
-            #     return stego_Yl, stego_Yh, cover_Yl, cover_Yh
 
             def ycbcr_images(cover_ybr, stego_ybr, device):
                 # List to Tensor
@@ -407,7 +398,6 @@ def train(configs,
             
 
         # End of Evaluation
-    #    if epoch == epochs - 1:
         if epoch % 5 == 0:
             plt.plot(np.arange(len(val_loss_plot)), val_loss_plot, label="loss")
             plt.plot(np.arange(len(val_acc_plot)), val_acc_plot, label="valid acc")
@@ -445,15 +435,15 @@ def main():
     train_config = load_yaml(config_path)['train']
     trump_path = train_config['trump_path'] 
     cage_path = train_config['cage_path'] 
-    device = torch.device(f'cuda' if torch.cuda.is_available() else 'cpu') 
+    device = torch.device(f'cuda:{args.gpus}' if torch.cuda.is_available() else 'cpu') 
 
     os.makedirs(os.path.join(save_path, 'loss'), exist_ok=True)
     shutil.copyfile(args.config_path, os.path.join(save_path, 'config.yml'))
     print(f'[DEBUG] Trained Model will be saved at {save_path}') 
 
     print("[INFO] Split dataset...")
-    trump_train_dataset, trump_val_dataset, _ = split_dataset(trump_path, train_transform=transform_train, valid_transform=transform_val, test_transform=transform_test)
-    cage_train_dataset, cage_val_dataset, _ = split_dataset(cage_path, train_transform=transform_train,valid_transform=transform_val, test_transform=transform_test) 
+    trump_train_dataset, trump_val_dataset, _ = split_dataset(trump_path, train_transform=transform_train, valid_transform=transform_val, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1)
+    cage_train_dataset, cage_val_dataset, _ = split_dataset(cage_path, train_transform=transform_train,valid_transform=transform_val, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1)
 
     print("[INFO] Load dataset...")
     trump_train_loader = DataLoader(trump_train_dataset, batch_size=train_config['batch_size'], shuffle=True)
@@ -462,6 +452,7 @@ def main():
     cage_train_loader = DataLoader(cage_train_dataset, batch_size=train_config['batch_size'], shuffle=True)
     cage_val_loader = DataLoader(cage_val_dataset, batch_size=train_config['batch_size'], shuffle=False)
 
+#    assert len(trump_train_loader) == len(cage_train_loader), "The size of two dataset should be same"
 
     criterion = nn.MSELoss(reduction='mean')
     message_criterion = nn.BCELoss(reduction='mean') 

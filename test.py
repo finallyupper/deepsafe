@@ -121,6 +121,7 @@ def main():
     trump_test_loader = DataLoader(trump_test_dataset, batch_size=args.batch_size, shuffle=False)
     cage_test_loader = DataLoader(cage_test_dataset, batch_size=args.batch_size, shuffle=False)
 
+    assert len(trump_test_loader) == len(cage_test_loader), "The pair data size should be same"
     jpeg = DiffJPEG.DiffJPEG(
         height=height, width=width,
         differentiable=True,
