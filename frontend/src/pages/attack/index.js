@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { useRouter } from 'next/router';
-import Info from '../components/Info';
+import Info from '../../components/Info';
 
 export default function Home() {
   const router = useRouter();
 
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [watermarkedImage, setWatermarkedImage] = useState("");
+  const [swappedImage, setSwappedImage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
 
-  const goAttack = () => {
-    router.push('/attack');
+  const goHome = () => {
+    router.push('/');
   };
 
   // 파일 업로드 핸들러
@@ -24,8 +24,8 @@ export default function Home() {
     }
   };
   
-  // 워터마킹 요청 핸들러
-  const watermark = async () => {
+  // 페이스스왑 요청 핸들러
+  const faceswap = async () => {
     if (!image) {
       alert("Please upload an image first!");
       return;
@@ -37,7 +37,7 @@ export default function Home() {
       formData.append("image", image); // 서버로 전송할 이미지 추가
 
       // API 요청
-      const response = await fetch("https://api-endpoint.com/watermark", {
+      const response = await fetch("https://api-endpoint.com/faceswap", {
         method: "POST",
         body: formData,
       });
@@ -47,7 +47,7 @@ export default function Home() {
       }
 
       const data = await response.json(); // 서버로부터 데이터 받기
-      setWatermarkedImage(data.watermarkedImageUrl); // 워터마킹된 이미지 URL 저장
+      setSwappedImage(data.swappedImageUrl); // 워터마킹된 이미지 URL 저장
     } catch (error) {
       console.error("Error during watermarking:", error);
       alert("Failed to watermark the image. Please try again.");
@@ -56,13 +56,10 @@ export default function Home() {
     }
   };
 
-  // 워터마킹된 이미지 다운로드 핸들러
-  const downloadImage = () => {
-    const link = document.createElement("a");
-    link.href = watermarkedImage; // 워터마킹된 이미지 URL
-    link.download = "watermarked_image.png"; // 다운로드될 파일 이름
-    link.click(); // 클릭 이벤트로 다운로드 시작
-  };
+  //메세지
+  const sendMessage = () => {
+    alert('your image is attacked!');
+  }
 
   // 로딩 스피너 컴포넌트
   const LoadingSpinner = () => {
@@ -83,12 +80,13 @@ export default function Home() {
           <nav className="w-1/5 bg-gray-200 p-4 rounded-l-lg flex flex-col items-center">
 
             {/* Additional Navigation Items */}
-            <button className="w-12 h-12 flex items-center justify-center mb-4 bg-gray-300 text-gray-700 rounded-full shadow-lg hover:bg-gray-400">
-              <span className="material-icons">face</span>
+            <button
+              className="w-12 h-12 flex items-center justify-center mb-4 bg-gray-300 text-gray-700 rounded-full shadow-lg hover:bg-gray-400"
+              onClick={goHome}
+            ><span className="material-icons">face</span>
             </button>
             <button
               className="w-12 h-12 flex items-center justify-center mb-4 bg-gray-300 text-gray-700 rounded-full shadow-lg hover:bg-gray-400"
-              onClick={goAttack}
             ><span class="material-icons">face_retouching_off</span>
             </button>
             <button
@@ -100,13 +98,13 @@ export default function Home() {
           {/* Main Content */}
           <div className="flex-1 p-8">
             <h1 className="text-5xl font-bold text-blue-500">
-              Deep Safe
+              Face Swap
             </h1>
             <p className="mt-4 text-gray-600">
-              Protect face swaps. We will watermark the image if you upload some image.
+              Upload images to swap faces. Watermarked image will not be swapped well.
             </p>
             <button
-              className='bg-blue-400 text-white p-3 rounded shadow text-2xl mt-2 hover:bg-blue-500'
+              className='bg-blue-400 text-white p-3 rounded text-2xl mt-2 hover:bg-blue-500'
               onClick={() => document.getElementById("image-upload").click()}
             >Upload image</button>
             <input
@@ -129,25 +127,25 @@ export default function Home() {
                   />
                   <button
                     className="mt-2 rounded p-1 text-white bg-blue-400 text-2xl"
-                    onClick={watermark}
-                  >{isLoading ? "Processing..." : "Watermark"}</button>
+                    onClick={faceswap}
+                  >{isLoading ? "Processing..." : "Face Swap"}</button>
                   {isLoading && <LoadingSpinner />}
                 </div>
               )}
               
               {/* Watermarked Image Preview */}
-              {watermarkedImage && (
+              {swappedImage && (
                 <div className="">
-                  <h2 className="text-xl font-semibold text-gray-800">Watermarked Image:</h2>
+                  <h2 className="text-xl font-semibold text-gray-800">Face Swap Image:</h2>
                   <img
-                    src={watermarkedImage}
-                    alt="Watermarked Preview"
+                    src={swappedImage}
+                    alt="Swapped Preview"
                     className="mt-4 max-w-full h-auto"
                   />
                   <button
-                    className="mt-2 rounded p-1 text-white bg-blue-400 text-2xl"
-                    onClick={downloadImage}
-                  >Download</button>
+                    className="mt-2 rounded p-1 text-white bg-red-400 text-2xl"
+                    onClick={sendMessage}
+                  >WARNNING</button>
                 </div>
               )}
             </div>

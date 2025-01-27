@@ -4,9 +4,9 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       {/* 공통 레이아웃 */}
-      <header>Header</header>
+      <header></header>
       <Component {...pageProps} />
-      <footer>Footer</footer>
+      <footer></footer>
     </>
   );
 }
