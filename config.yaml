@@ -1,19 +1,19 @@
 # config.yaml
 train:
-  batch_size: 32
+  batch_size: 32 # 16
   lr: 0.0005 
   epoch: 2500
   start_decode: 30 # d_iter
   clip: 15
   message_size: 4 # 15
   T_max: 50 
-  name: ckpt-new 
+  name: bc-ckpt-ddf 
   lambda_val: 2 # beta
   alpha_val: 0.5 # alpha
   
-  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/winterFace
-  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/karinaFace
-  
+  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/byeonFace
+  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/chaFace 
+
 test:
   batch_size: 2 # 16
   message_size: 15

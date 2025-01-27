@@ -452,7 +452,7 @@ def main():
     cage_train_loader = DataLoader(cage_train_dataset, batch_size=train_config['batch_size'], shuffle=True)
     cage_val_loader = DataLoader(cage_val_dataset, batch_size=train_config['batch_size'], shuffle=False)
 
-#    assert len(trump_train_loader) == len(cage_train_loader), "The size of two dataset should be same"
+    assert len(trump_train_loader) == len(cage_train_loader), "The size of two dataset should be same"
 
     criterion = nn.MSELoss(reduction='mean')
     message_criterion = nn.BCELoss(reduction='mean') 

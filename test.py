@@ -11,8 +11,22 @@ import lpips
 from engine.utils import set_seed, test_argument_parser, calculate_psnr, calculate_ssim, load_yaml
 import warnings
 warnings.filterwarnings('ignore')
+from torchvision import models
 import torch.nn.functional as F 
 
+class VGGPerceptualLoss(nn.Module):
+    def __init__(self):
+        super(VGGPerceptualLoss, self).__init__()
+        vgg = models.vgg16(pretrained=True).features[:16].eval()  # 16층까지만 사용
+        for param in vgg.parameters():
+            param.requires_grad = False  # 모델의 가중치는 고정
+        self.vgg = vgg
+
+    def forward(self, generated, target):
+        gen_features = self.vgg(generated)
+        target_features = self.vgg(target)
+        return F.mse_loss(gen_features, target_features)
+    
 def load_model(device, type='vgg'):
     if type=='vgg':
         resnet = InceptionResnetV1(pretrained='vggface2').eval()
