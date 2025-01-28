@@ -22,6 +22,16 @@ def load_model(device, type='vgg'):
     #    mtcnn = MTCNN(image_size=160).to(device) 
     return resnet
 
+# MultiGPU
+# ========
+
+class DataParallel(torch.nn.DataParallel):
+    def __getattr__(self, name,):
+        try:
+            return super().__getattr__(name)
+        except AttributeError:
+            return getattr(self.module, name)
+        
 def get_ckpt_name(config):
     ckpt_best = f'ckpt_best_lam{config["lambda_val"]}_al{config["alpha_val"]}.pt' 
     ckpt_img_best = f'ckpt_best_img_lam{config["lambda_val"]}_al{config["alpha_val"]}.pt' 

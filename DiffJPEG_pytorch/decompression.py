@@ -119,7 +119,6 @@ def chroma_upsampling(y, cb, cr):
     cb = repeat(cb)
     cr = repeat(cr)
 
-    print(y.shape, cb.shape, cr.shape)
     return torch.cat([y.unsqueeze(3), cb.unsqueeze(3), cr.unsqueeze(3)], dim=3)
 
 

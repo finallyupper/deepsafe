@@ -6,7 +6,7 @@ import cv2
 from DiffJPEG_pytorch import DiffJPEG
 from dataset import split_dataset, transform_test
 from DualDefense_gan_fs import DualDefense 
-from facenet_pytorch import InceptionResnetV1
+from facenet_pytorch.models.inception_resnet_v1 import InceptionResnetV1
 import lpips
 from engine.utils import set_seed, test_argument_parser, calculate_psnr, calculate_ssim, load_yaml
 import warnings
@@ -14,19 +14,6 @@ warnings.filterwarnings('ignore')
 from torchvision import models
 import torch.nn.functional as F 
 
-class VGGPerceptualLoss(nn.Module):
-    def __init__(self):
-        super(VGGPerceptualLoss, self).__init__()
-        vgg = models.vgg16(pretrained=True).features[:16].eval()  # 16층까지만 사용
-        for param in vgg.parameters():
-            param.requires_grad = False  # 모델의 가중치는 고정
-        self.vgg = vgg
-
-    def forward(self, generated, target):
-        gen_features = self.vgg(generated)
-        target_features = self.vgg(target)
-        return F.mse_loss(gen_features, target_features)
-    
 def load_model(device, type='vgg'):
     if type=='vgg':
         resnet = InceptionResnetV1(pretrained='vggface2').eval()
@@ -259,6 +246,8 @@ def main():
     loss_vgg = lpips.LPIPS(net='vgg').to(device)  # closer to "traditional" perceptual loss
 
     height, width = 160, 160 
+    message_size = args.message_size
+
     test_config = load_yaml(args.config_path)['test'] 
     trump_path = test_config['trump_path'] 
     cage_path = test_config['cage_path'] 
@@ -272,7 +261,7 @@ def main():
     for path in save_result: os.makedirs(os.path.join(save_path, 'img', path), exist_ok=True)
 
     print(f'Load model from {model_path}') 
-    model = DualDefense(test_config['message_size'],in_channels=3,device=device) 
+    model = DualDefense(message_size,in_channels=3,device=device) 
     model.encoder.load_state_dict(torch.load(model_path)['encoder'], strict=False)
     model.decoder.load_state_dict(torch.load(model_path)['decoder'], strict=False)
 
@@ -283,8 +272,8 @@ def main():
     resnet = load_model(device, type='vgg') 
 
     print('Split & Load dataset') 
-    _, _, trump_test_dataset = split_dataset(trump_path, test_transform=transform_test, val_ratio=0, test_ratio=1)
-    _, _, cage_test_dataset = split_dataset(cage_path, test_transform=transform_test, val_ratio=0, test_ratio=1) 
+    _, _, trump_test_dataset = split_dataset(trump_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1)
+    _, _, cage_test_dataset = split_dataset(cage_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1) 
     trump_test_loader = DataLoader(trump_test_dataset, batch_size=args.batch_size, shuffle=False)
     cage_test_loader = DataLoader(cage_test_dataset, batch_size=args.batch_size, shuffle=False)
 
@@ -294,9 +283,9 @@ def main():
         differentiable=True,
         quality=quality
     ).to(device) 
-    
+
     test(
-        (test_config['message_size'], save_path),
+        (message_size, save_path),
         model,
         jpeg,
         trump_test_loader, cage_test_loader,

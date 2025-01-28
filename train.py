@@ -14,6 +14,7 @@ from engine.utils import load_yaml, get_ckpt_name
 import shutil 
 import torch.nn as nn
 from engine.dwt import get_dwt, get_y_channels, DWTForward
+import engine.utils 
 
 def train(configs, 
           model, 
@@ -425,6 +426,7 @@ def train(configs,
     # End of for loop (Epochs)        
     
 #NOTE(Yoojin): Deleted `test` function in `train.py`
+DEVICE_IDS = [0, 4]
 def main():
     set_seed(0) 
     args = default_argument_parser() 
@@ -435,7 +437,7 @@ def main():
     train_config = load_yaml(config_path)['train']
     trump_path = train_config['trump_path'] 
     cage_path = train_config['cage_path'] 
-    device = torch.device(f'cuda:{args.gpus}' if torch.cuda.is_available() else 'cpu') 
+    device = torch.device(f'cuda:{DEVICE_IDS[0]}' if torch.cuda.is_available() else 'cpu') 
 
     os.makedirs(os.path.join(save_path, 'loss'), exist_ok=True)
     shutil.copyfile(args.config_path, os.path.join(save_path, 'config.yml'))
@@ -461,7 +463,10 @@ def main():
     message_size = train_config['message_size']
     ckpt_names = get_ckpt_name(train_config) 
 
-    model = DualDefense(message_size= message_size, in_channels=3,device=device) 
+    model = DualDefense(message_size= message_size, in_channels=3) #,device=device) 
+    if torch.cuda.device_count() > 1:
+        model = engine.utils.DataParallel(model, device_ids=DEVICE_IDS)
+    model.to(device)
 
     optimizer = optim.Adam(
             params=list(model.encoder.parameters())+ list(model.decoder.parameters()), 

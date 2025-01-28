@@ -1,6 +1,6 @@
 # config.yaml
 train:
-  batch_size: 32 # 16
+  batch_size: 16 # 32
   lr: 0.0005 
   epoch: 2500
   start_decode: 30 # d_iter
@@ -16,10 +16,10 @@ train:
 
 test:
   batch_size: 2 # 16
-  message_size: 15
+  message_size: 4
   quality: 50 # JPEG quality
 
-  model_path: /data/yoojinoh/def/250122_winkar_train/ckpt-new/ckpt_best_lam2_al0.5.pt #/data/yoojinoh/def/250118_winkar/save/ckpt-new/_2_0.5_best.pt
-  trump_path: /data/yoojinoh/def/celeb/winterEnd
-  cage_path: /data/yoojinoh/def/celeb/karinaEnd 
-  save_path: /data/yoojinoh/def/250123_winkar_eval
+  model_path: /data1/yoojinoh/def/train/0127_bc_ddf/bc-ckpt-ddf/ckpt_best_lam2_al0.5.pt
+  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/byeonFace
+  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/chaFace 
+  save_path: /data1/yoojinoh/def/eval/0128_bc_ddf
