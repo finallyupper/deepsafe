@@ -28,4 +28,8 @@ class FaceSwapRequest(BaseModel):
 
 
 class ImageResponse(BaseModel):
-    image: bytes
+    image_url: str
+
+
+class ImageRequest(BaseModel):
+    image: str  # Base64 인코딩된 이미지

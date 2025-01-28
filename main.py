@@ -1,18 +1,31 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from fastapi.responses import FileResponse
 from schemas import (
     GetPostResponse,
     UploadPostRequest,
     UploadPostResponse,
     FaceSwapRequest,
     ImageResponse,
+    ImageRequest,
 )
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 import os
 import shutil
 import json
-
+import uuid
 
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 모든 도메인 허용 (배포 시 특정 도메인으로 제한 권장)
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드 허용
+    allow_headers=["*"],  # 모든 HTTP 헤더 허용
+)
+
 
 POSTS_DIR = "posts"
 IMAGES_DIR = "images"
@@ -32,12 +45,28 @@ def save_posts(posts):
         json.dump(posts, f, indent=4)
 
 
-@app.post("/upload-image", response_model=ImageResponse)
-def upload_image(file: UploadFile = File(...)):
-    file_path = os.path.join(IMAGES_DIR, file.filename)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    return {"image_url": f"/images/{file.filename}"}
+@app.post("/upload-image")
+async def upload_image(request: Request):
+    try:
+        # 요청에서 바이너리 데이터 읽기
+        image_data = await request.body()
+
+        # 파일 저장
+        random_filename = (
+            f"{uuid.uuid4()}.png"  # Using UUID to generate a random filename
+        )
+        file_path = os.path.join(IMAGES_DIR, random_filename)
+
+        # 파일 저장
+        with open(file_path, "wb") as f:
+            f.write(image_data)
+
+        # 이미지 URL 반환
+        return {"image_url": f"/images/{random_filename}"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=400, detail=f"Failed to process image: {str(e)}"
+        )
 
 
 @app.get("/posts", response_model=List[GetPostResponse])
@@ -87,4 +116,4 @@ def get_image(filename: str):
     file_path = os.path.join(IMAGES_DIR, filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Image not found.")
-    return ImageResponse(file_path)
+    return FileResponse(file_path)
