@@ -1,18 +1,17 @@
 import { useState, useEffect } from "react";
-import { useRouter } from 'next/router';
-import Info from '../../components/Info';
-import Navbar from "../../components/Navbar";
+import { useRouter } from "next/router";
+import Navbar from "../components/Navbar";
 
-export default function Home() {
+export default function Upload() {
   const router = useRouter();
-
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [swappedImage, setSwappedImage] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  
+  const [imageUrl, setImageUrl] = useState(""); // To store the image URL
+
+  // Handle image upload
   useEffect(() => {
     if(!image) return;
     uploadImage();
@@ -57,77 +56,73 @@ export default function Home() {
     }
   };
 
-  
-  
-  // 페이스스왑 요청 핸들러
-  const faceswap = async () => {
-    if (!image) {
-      alert("Please upload an image first!");
+  // Submit post with title, content, and image URL
+  const submitPost = async () => {
+    if (!imageUrl || !title || !content) {
+      alert("Please fill in all fields and upload an image.");
       return;
     }
 
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("image", image); // 서버로 전송할 이미지 추가
-
-      // API 요청
-      const response = await fetch("http://localhost:8000/faceswap", {
+      const response = await fetch("http://localhost:8000/upload-post", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          image_url: imageUrl, // Use the image URL obtained from image upload
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to process the image.");
+        throw new Error("Failed to upload post.");
       }
 
-      const data = await response.json(); // 서버로부터 데이터 받기
-      setSwappedImage(data.swappedImageUrl); // 워터마킹된 이미지 URL 저장
+      // Redirect to home page after successful post upload
+      router.push("/");
     } catch (error) {
-      console.error("Error during watermarking:", error);
-      alert("Failed to watermark the image. Please try again.");
+      console.error("Error uploading post:", error);
+      alert("Failed to upload post. Please try again.");
     } finally {
-      setIsLoading(false); // 로딩 종료
+      setIsLoading(false);
     }
   };
-
-  //메세지
-  const sendMessage = () => {
-    alert('your image is attacked!');
-  }
-
-  // 로딩 스피너 컴포넌트
-  const LoadingSpinner = () => {
-    return (
-      <div className="flex items-center justify-center mt-2">
-        <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
       {/* Outer Container with Gradient Border */}
-      <div className="w-full h-full bg-red-300 p-3">
+      
+      <div className="w-full h-full bg-gradient-to-r from-teal-400 via-pink-500 to-yellow-500 p-3">
         {/* Inner Box */}
         <div className="flex h-full bg-neutral-100">
-          {/* Navigation Bar */}
-          <Navbar />
-
           {/* Main Content */}
+          <Navbar />
           <div className="flex-1 p-8">
-            <h1 className="text-5xl font-bold text-red-500">
-              FaceSwap
-            </h1>
-            <p className="mt-4 text-black font-semibold">
-              Upload images to swap faces. Watermarked image will not be swapped well.
+            <h1 className="text-5xl font-bold text-pink-500">Upload Post</h1>
+            <p className="mt-4 font-bold text-black">
+              Upload an image and add a title and content for your post.
             </p>
-             {/* Image Upload */}
-             <div className="mt-6 w-64 h-64 rounded-lg bg-gray-400">
+
+            {/* Title Input */}
+            <div className="mt-6">
+              <input
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full p-3 pl-5 rounded-full border border-gray-300 shadow-md"
+              />
+            </div>
+
+            {/* Image Upload */}
+            <div className="mt-6 w-64 h-64 rounded-lg bg-gray-400">
               {!imagePreview && (
                 <div className="w-full h-full rounded-lg">
                   <button
-                    className="bg-red-300 text-white w-full rounded-lg h-full shadow text-2xl hover:bg-red-200"
+                    className="bg-orange-300 text-white w-full rounded-lg h-full shadow text-2xl hover:bg-orange-200"
                     onClick={() => document.getElementById("image-upload").click()}
                   >
                     <span className="material-icons text-white text-3xl">add</span>
@@ -159,13 +154,31 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* Content Input */}
+            <div className="mt-6">
+              <textarea
+                placeholder="Content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full p-3 rounded border border-gray-300 shadow-md h-32"
+              />
+            </div>
+
+            {/* Submit Post Button */}
+            {imageUrl && content && title && (
+              <div className="mt-6">
+                <button
+                  className="fixed bottom-[15vh] right-[5vw] bg-teal-400 text-white px-2 rounded-full shadow-lg hover:bg-teal-600 flex items-center justify-center"
+                  onClick={submitPost}
+                >
+                  <span className="material-icons text-white text-3xl">check</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
-      <Info
-        show={showInfo}
-        onClose={() => setShowInfo(false)}
-      />
     </div>
   );
 }

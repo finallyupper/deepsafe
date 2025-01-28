@@ -4,7 +4,7 @@ import Image from 'next/image';
 export default function INFO({ show, onClose }) {
   if (!show) return null;
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
       <div className="relative bg-white rounded-lg shadow-lg p-6 w-96">
         <h1 className="text-2xl font-bold mb-4 text-center text-black">프로메테우스 4팀 Deep Safe</h1>
         <p className="mb-2 text-gray-700">
