@@ -9,12 +9,10 @@ from torch.autograd import Variable
 from dataset import split_dataset 
 from DualDefense_gan_fs import DualDefense 
 from dataset import transform_train, transform_test, transform_val
-from engine.utils import default_argument_parser, set_seed, calculate_ssim_torch
+from engine.utils import default_argument_parser, set_seed
 from engine.utils import load_yaml, get_ckpt_name
 import shutil 
 import torch.nn as nn
-from engine.dwt import get_dwt, get_y_channels, DWTForward
-import engine.utils 
 
 def train(configs, 
           model, 
@@ -28,9 +26,7 @@ def train(configs,
     min_val_loss = float('inf')
     min_val_image_loss = float('inf')
     epochs, message_size, d_iter, clip, save_path, name, beta, alpha = configs 
-    lambda_en, lambda_s, lambda_adv = 0.8, 0.1, 0.1
     print(f'[INFO] alpha={alpha}, beta={beta}, clip={clip}, message_size={message_size}, d_iter={d_iter}')
-    print(f'[INFO] Lambda of enc, ssim, adv is given as {lambda_en}, {lambda_s}, {lambda_adv}')
     ckpt_best, ckpt_img_best, ckpt_final = ckpt_names
 
     train_loss_plot = []
@@ -52,7 +48,6 @@ def train(configs,
         train_image_df_loss=0#original domain attack loss
         train_message_loss=0 # message loss * beta(=2)
         train_message_correct, train_df_message_correct = 0, 0
-        train_ssim_loss=0
         val_image_loss, val_image_df_loss = 0, 0
         val_message_loss, val_message_correct, val_df_message_correct = 0, 0, 0 
         train_size, val_size = 0, 0 
@@ -143,7 +138,7 @@ def train(configs,
             image_loss = 0.15 * encoded_adversarial_loss + 0.8 * encoded_loss + 0.05 * image_adv_logits_loss
             
             #Modified(Yoojin): No alpha multiplied
-            image_loss *= 0.5 #args.alpha_val
+            image_loss *= alpha #args.alpha_val
             loss = image_loss
 
             train_image_loss += encoded_loss.item()
@@ -167,7 +162,7 @@ def train(configs,
                 train_message_correct += ((encoded_trump_pred_message > 0.5) == trump_message).sum().item() + \
                     ((encoded_cage_pred_message > 0.5) == cage_message).sum().item()
 
-                message_loss *= 2 #args.lambda_val # Beta in paper, =2
+                message_loss *= beta #args.lambda_val # Beta in paper, =2
                 loss += message_loss # Total loss
                 train_message_loss += message_loss.item()
                 # Update watermark encoder and decoder
@@ -194,7 +189,6 @@ def train(configs,
 
         lr_scheduler.step()
 
-        # Evaluation
         model.encoder.eval()
         model.decoder.eval() 
 
@@ -230,7 +224,7 @@ def train(configs,
                 image_adv_logits_loss /= 2 
 
                 image_loss = 0.9 * encoded_loss + 0.1 * image_adv_logits_loss # ori=0.9, adv=0.1
-                image_loss *= 0.5 #args.alpha_val
+                image_loss *= alpha #args.alpha_val
 
 
                 if epoch >= d_iter:
@@ -250,8 +244,7 @@ def train(configs,
 
                     val_df_message_correct += ((encoded_trump_df_pred_message > 0.5) == trump_message).sum().item() + ((encoded_cage_df_pred_message > 0.5) == cage_message).sum().item()
                     val_message_correct += ((encoded_trump_pred_message > 0.5) == trump_message).sum().item() + ((encoded_cage_pred_message > 0.5) == cage_message).sum().item()
-                    message_loss *= 2 #args.lambda_val
-                    #Modified(Yoojin): No beta multiplied
+                    message_loss *= beta #args.lambda_val
                     val_message_loss += message_loss.item()
                 
                 val_image_loss += encoded_loss.item()
