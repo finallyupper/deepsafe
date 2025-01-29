@@ -68,10 +68,15 @@ def train(configs,
             cage_train_x = cage_train_x.to(device)
 
             # Real=1, Fake=0
-            trump_valid = Variable(torch.Tensor(len(trump_train_x), 1).to(device).fill_(1.0),requires_grad=False) # No Watermark image(=1)
-            trump_fake = Variable(torch.Tensor(len(trump_train_x), 1).to(device).fill_(0.0), requires_grad=False) # Watermarked image(=0)
-            cage_valid = Variable(torch.Tensor(len(cage_train_x), 1).to(device).fill_(1.0),requires_grad=False)
-            cage_fake = Variable(torch.Tensor(len(cage_train_x), 1).to(device).fill_(0.0),requires_grad=False)
+            # trump_valid = Variable(torch.Tensor(len(trump_train_x), 1).to(device).fill_(1.0),requires_grad=False) # No Watermark image(=1)
+            # trump_fake = Variable(torch.Tensor(len(trump_train_x), 1).to(device).fill_(0.0), requires_grad=False) # Watermarked image(=0)
+            # cage_valid = Variable(torch.Tensor(len(cage_train_x), 1).to(device).fill_(1.0),requires_grad=False)
+            # cage_fake = Variable(torch.Tensor(len(cage_train_x), 1).to(device).fill_(0.0),requires_grad=False)
+
+            trump_valid = torch.ones(len(trump_train_x), 1, device=device)
+            trump_fake = torch.zeros(len(trump_train_x), 1, device=device)
+            cage_valid = torch.ones(len(cage_train_x), 1, device=device)
+            cage_fake = torch.zeros(len(cage_train_x), 1, device=device)
 
             # Define binary message
             trump_message = torch.randint(0, 2, (trump_train_x.shape[0], message_size), dtype=torch.float).to(device).detach()
@@ -378,7 +383,16 @@ def train(configs,
                         "epoch": epoch
                     }, os.path.join(path, ckpt_best))
                     print(f'(img+msg)model saved at epoch {epoch}')
-
+            else:
+                if not os.path.isdir(path):
+                    os.makedirs(path)
+                    torch.save({
+                        "encoder": model.encoder.state_dict(),
+                        "decoder": model.decoder.state_dict(),
+                        "epoch": epoch
+                    }, os.path.join(path, f'ckpt_encoder.pt'))
+                    #print(f'Model saved at epoch {epoch + 1}/{epochs}')
+                
             if min_val_image_loss > val_image_loss and epoch > d_iter:               
                 min_val_image_loss = val_image_loss
                 if not os.path.isdir(path):
@@ -426,7 +440,6 @@ def train(configs,
     # End of for loop (Epochs)        
     
 #NOTE(Yoojin): Deleted `test` function in `train.py`
-DEVICE_IDS = [0, 4]
 def main():
     set_seed(0) 
     args = default_argument_parser() 
@@ -437,7 +450,7 @@ def main():
     train_config = load_yaml(config_path)['train']
     trump_path = train_config['trump_path'] 
     cage_path = train_config['cage_path'] 
-    device = torch.device(f'cuda:{DEVICE_IDS[0]}' if torch.cuda.is_available() else 'cpu') 
+    device = torch.device(f'cuda:{args.gpus}' if torch.cuda.is_available() else 'cpu') 
 
     os.makedirs(os.path.join(save_path, 'loss'), exist_ok=True)
     shutil.copyfile(args.config_path, os.path.join(save_path, 'config.yml'))
@@ -463,10 +476,7 @@ def main():
     message_size = train_config['message_size']
     ckpt_names = get_ckpt_name(train_config) 
 
-    model = DualDefense(message_size= message_size, in_channels=3) #,device=device) 
-    if torch.cuda.device_count() > 1:
-        model = engine.utils.DataParallel(model, device_ids=DEVICE_IDS)
-    model.to(device)
+    model = DualDefense(message_size= message_size, in_channels=3, device=device, model_type="byeon_cha") 
 
     optimizer = optim.Adam(
             params=list(model.encoder.parameters())+ list(model.decoder.parameters()), 

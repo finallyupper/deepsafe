@@ -8,19 +8,17 @@ from faceswap_pytorch.models import Autoencoder_df
 CHECKPOINTS = {
     'trump_cage' : '/data1/yoojinoh/def/241116_faceswap_160/checkpoint/autoencoder_160.t7', 
     'winter_karina': '/data1/yoojinoh/def/250101_faceswap_160/checkpoint/ae_win_kar_160.t7',
-    'bc': '/data1/yoojinoh/def/train/0126_fc_bc/checkpoint/bc_ckpt_best.t7' # 변우석, 차은우
+    'byeon_cha': '/data1/yoojinoh/def/train/0128_fc_bc_v2/checkpoint/bc_ckpt_best.t7' # 변우석, 차은우
 }
 
 class DualDefense(nn.Module):
-    def __init__(self, message_size, in_channels, device=False):
+    def __init__(self, message_size, in_channels,device=False,model_type='byeon_cha', ):
         super().__init__()
         self.encoder = ResNetUNet(message_size)
         self.df_model = Autoencoder_df()
         self.decoder = Decoder(message_size)
         self.adv_model = Adversary_Init(in_channels) 
-        checkpoint = torch.load(CHECKPOINTS['bc'])
-
-
+        checkpoint = torch.load(CHECKPOINTS[model_type])
         self.df_model.load_state_dict(checkpoint['state']) 
 
         if device:

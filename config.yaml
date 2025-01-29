@@ -5,7 +5,7 @@ train:
   epoch: 2500
   start_decode: 30 # d_iter
   clip: 15
-  message_size: 4 # 15
+  message_size: 15 # 4
   T_max: 50 
   name: bc-ckpt-ddf 
   lambda_val: 2 # beta

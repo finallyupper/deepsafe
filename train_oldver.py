@@ -117,22 +117,14 @@ def train(configs,
                 model.deepfake1(encoded_cage, 'A')
             
             # 3. Compute Image Loss
-            # 1)Image quality loss 2) Structural info compensation loss , 3) Original domain attack loss
-            # L_img = lamb_en * L_en + lamb_s*L_s + lamb_adv*L_adv
-
-            # 3-1. Image quality loss
-            # Predict real/fake with encoded image by discriminator
-            #CHECK(Yoojin): Expectation, Mean
-            encoded_loss = criterion(encoded_trump, trump_train_x) + criterion(encoded_cage, cage_train_x) # Eq13, MSE Loss
-
             encoded_trump_pred = model.adv(encoded_trump) 
             encoded_cage_pred = model.adv(encoded_cage)
 
             encoded_adversarial_loss   = adversarial_loss(encoded_trump_pred, trump_valid.to(device)) \
-                + adversarial_loss(encoded_cage_pred, cage_valid.to(device)) 
+                + adversarial_loss(encoded_cage_pred, cage_valid.to(device))  
+            
+            encoded_loss = criterion(encoded_trump, trump_train_x) + criterion(encoded_cage, cage_train_x) # Eq13, MSE Loss
 
-            # 3-3. Original domain attack loss
-            # MSE Loss btw swap images (Eq 10, 11, 12)
             image_adv_logits_loss = (criterion(logits_original_trump, logits_df_trump) + criterion(logits_original_cage, logits_df_cage)) 
             
             image_loss = 0.15 * encoded_adversarial_loss + 0.8 * encoded_loss + 0.05 * image_adv_logits_loss
@@ -180,6 +172,7 @@ def train(configs,
         train_message_loss /= train_size
 
         train_loss_plot.append(train_message_loss)
+        
         train_ed_loss.append(train_image_loss)
         train_adv_loss.append(train_image_df_loss)
         train_gan_loss_plot.append(train_gan_loss) 

@@ -6,7 +6,7 @@ import argparse
 import numpy as np 
 import yaml 
 import pywt 
-from facenet_pytorch import MTCNN, InceptionResnetV1 
+from facenet_pytorch.models.inception_resnet_v1 import InceptionResnetV1 
 import torch.nn.functional as F
 
 def load_yaml(file_path: str) -> dict:
