@@ -8,6 +8,7 @@ import yaml
 import pywt 
 from facenet_pytorch.models.inception_resnet_v1 import InceptionResnetV1 
 import torch.nn.functional as F
+from skimage.exposure import match_histograms
 
 def load_yaml(file_path: str) -> dict:
     with open(file_path) as f:
@@ -21,9 +22,6 @@ def load_model(device, type='vgg'):
         resnet = resnet.to(device)
     #    mtcnn = MTCNN(image_size=160).to(device) 
     return resnet
-
-# MultiGPU
-# ========
 
 class DataParallel(torch.nn.DataParallel):
     def __getattr__(self, name,):
@@ -61,8 +59,6 @@ def default_argument_parser():
 def test_argument_parser():
     parser = argparse.ArgumentParser(description='Test')
     parser.add_argument('--config_path', default="/home/yoojinoh/Others/PR/deepfake-free/DualDefense/config.yaml", type=str) #ADD(Yoojin)
-    parser.add_argument('--batch_size', default=16, type=int, help='batch size')
-    parser.add_argument('--message_size', default=15, type=int, help='msg size')
     parser.add_argument('--gpus', default='1', type=str, help='id of gpus to use')
     return parser.parse_args()
 
@@ -323,3 +319,24 @@ def MedianFilter(img_tensor, k_size):
         img_tensor[idx] = torch.from_numpy(img).data
     return img_tensor 
 
+def match_histogram_color(source, reference):
+    batch_size = source.shape[0]  
+    matched_images = []
+
+    for i in range(batch_size):
+        source_img = source[i].cpu().numpy().transpose(1, 2, 0) if isinstance(source[i], torch.Tensor) else source[i].transpose(1, 2, 0)
+        reference_img = reference[i].cpu().numpy().transpose(1, 2, 0) if isinstance(reference[i], torch.Tensor) else reference[i].transpose(1, 2, 0)
+        matched_image = match_histograms(source_img, reference_img).astype(np.float32) 
+        matched_images.append(torch.tensor(matched_image).permute(2, 0, 1))
+    return torch.stack(matched_images)
+
+def blend_images(source, reference, alpha=0.3):
+    batch_size = source.shape[0] 
+    matched_images = []
+
+    for i in range(batch_size):
+        source_img = source[i].cpu().numpy().transpose(1, 2, 0) if isinstance(source[i], torch.Tensor) else source[i].transpose(1, 2, 0)
+        reference_img = reference[i].cpu().numpy().transpose(1, 2, 0) if isinstance(reference[i], torch.Tensor) else reference[i].transpose(1, 2, 0)
+        matched_image = alpha * source_img + (1 - alpha) * reference_img
+        matched_images.append(torch.tensor(matched_image).permute(2, 0, 1))
+    return torch.stack(matched_images)

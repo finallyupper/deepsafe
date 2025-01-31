@@ -8,11 +8,11 @@ from dataset import split_dataset, transform_test
 from DualDefense_gan_fs import DualDefense 
 from facenet_pytorch.models.inception_resnet_v1 import InceptionResnetV1
 import lpips
-from engine.utils import set_seed, test_argument_parser, calculate_psnr, calculate_ssim, load_yaml
+from engine.utils import set_seed, test_argument_parser, calculate_psnr, calculate_ssim, load_yaml, blend_images
 import warnings
 warnings.filterwarnings('ignore')
-from torchvision import models
 import torch.nn.functional as F 
+from tqdm import tqdm
 
 def load_model(device, type='vgg'):
     if type=='vgg':
@@ -21,7 +21,8 @@ def load_model(device, type='vgg'):
         resnet = resnet.to(device)
     return resnet  
 
-def test(config, model, jpeg, test_loader_1, test_loader_2, loss_alex, loss_vgg, resnet, min_label, max_label, device):
+
+def test(config, model, test_loader_1, test_loader_2, loss_alex, loss_vgg, min_label, max_label, device):
     message_size, save_path = config
     test_message_correct, test_df_message_correct, test_size = 0, 0, 0
     trump_psnr_sum, cage_psnr_sum, trump_ssim_sum, cage_ssim_sum = 0, 0, 0, 0
@@ -38,7 +39,7 @@ def test(config, model, jpeg, test_loader_1, test_loader_2, loss_alex, loss_vgg,
     model.decoder.eval() 
     
     with torch.no_grad():
-        for (trump_test_x, cage_test_x) in zip(test_loader_1, test_loader_2):
+        for (trump_test_x, cage_test_x) in tqdm(zip(test_loader_1, test_loader_2)):
             trump_test_x = trump_test_x.to(device) 
             cage_test_x = cage_test_x.to(device) 
 
@@ -51,9 +52,8 @@ def test(config, model, jpeg, test_loader_1, test_loader_2, loss_alex, loss_vgg,
             encoded_trump = model.encode(trump_test_x, trump_message)
             encoded_cage = model.encode(cage_test_x, cage_message)
 
-            # Compress encoded image with given quality degree
-            encoded_trump = jpeg(encoded_trump).to(device)
-            encoded_cage = jpeg(encoded_cage).to(device) 
+            encoded_trump = blend_images(encoded_trump, trump_test_x).to(device) 
+            encoded_cage = blend_images(encoded_cage, cage_test_x).to(device)  
 
             # Faceswap with Opponent
             # 1) FS in original image
@@ -64,11 +64,25 @@ def test(config, model, jpeg, test_loader_1, test_loader_2, loss_alex, loss_vgg,
             _, _, encoded_cage_df = model.deepfake1(encoded_cage, 'A')
 
             for k in range(len(trump_test_x)):
-                cv2.imwrite(os.path.join(save_path, 'img/real', str(img_idx) + '_' + str(k) + '_A.png'),(trump_test_x[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
-                cv2.imwrite(os.path.join(save_path, 'img/encode', str(img_idx) + '_' + str(k) + '_A.png'),(encoded_trump[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
-                cv2.imwrite(os.path.join(save_path, 'img/encode_fake', str(img_idx) + '_' + str(k) + '_A.png'),(encoded_trump_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
-                cv2.imwrite(os.path.join(save_path, 'img/fake', str(img_idx) + '_' + str(k) + '_A.png'),(trump_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
+                real_img = (trump_test_x[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                encode_img = (encoded_trump[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                encode_fake_img = (encoded_trump_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                fake_img = (trump_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                height = max(real_img.shape[0], encode_img.shape[0], encode_fake_img.shape[0], fake_img.shape[0])
+                width = sum(img.shape[1] for img in [real_img, encode_img, encode_fake_img, fake_img])
+                combined_img = np.zeros((height, width, 3), dtype=np.float32)
+
+                x_offset = 0
+                for img in [real_img, encode_img, encode_fake_img, fake_img]:
+                    h, w, _ = img.shape
+                    combined_img[:h, x_offset:x_offset + w] = img
+                    x_offset += w
                 
+                save_dir = os.path.join(save_path, 'img/combined')
+                os.makedirs(save_dir, exist_ok=True)
+                save_filename = os.path.join(save_dir, f'{img_idx}_{k}_combined_A.png')
+                cv2.imwrite(save_filename, combined_img)
+
                 trump_psnr_sum += calculate_psnr((trump_test_x[k] * 255).permute(1, 2, 0).detach().cpu().numpy(),(encoded_trump[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
                 trump_ssim_sum += calculate_ssim((trump_test_x[k] * 255).permute(1, 2, 0).detach().cpu().numpy(),(encoded_trump[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
                 trump_df_psnr_sum += calculate_psnr((trump_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy(),(encoded_trump_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
@@ -76,10 +90,24 @@ def test(config, model, jpeg, test_loader_1, test_loader_2, loss_alex, loss_vgg,
 
 
             for k in range(len(cage_test_x)):
-                cv2.imwrite(os.path.join(save_path, 'img/real', str(img_idx) + '_' + str(k) + '_B.png'),(cage_test_x[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
-                cv2.imwrite(os.path.join(save_path, 'img/encode', str(img_idx) + '_' + str(k) + '_B.png'),(encoded_cage[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
-                cv2.imwrite(os.path.join(save_path, 'img/encode_fake', str(img_idx) + '_' + str(k) + '_B.png'),(encoded_cage_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
-                cv2.imwrite(os.path.join(save_path, 'img/fake', str(img_idx) + '_' + str(k) + '_B.png'),(cage_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
+                real_img = (cage_test_x[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                encode_img = (encoded_cage[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                encode_fake_img = (encoded_cage_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                fake_img = (cage_df[k] * 255).permute(1, 2, 0).detach().cpu().numpy().astype(np.float32)
+                height = max(real_img.shape[0], encode_img.shape[0], encode_fake_img.shape[0], fake_img.shape[0])
+                width = sum(img.shape[1] for img in [real_img, encode_img, encode_fake_img, fake_img])
+                combined_img = np.zeros((height, width, 3), dtype=np.float32)
+
+                x_offset = 0
+                for img in [real_img, encode_img, encode_fake_img, fake_img]:
+                    h, w, _ = img.shape
+                    combined_img[:h, x_offset:x_offset + w] = img
+                    x_offset += w
+                
+                save_dir = os.path.join(save_path, 'img/combined')
+                os.makedirs(save_dir, exist_ok=True)
+                save_filename = os.path.join(save_dir, f'{img_idx}_{k}_combined_B.png')
+                cv2.imwrite(save_filename, combined_img)
                 
                 cage_psnr_sum += calculate_psnr((cage_test_x[k] * 255).permute(1, 2, 0).detach().cpu().numpy(),
                                                  (encoded_trump[k] * 255).permute(1, 2, 0).detach().cpu().numpy())
@@ -135,61 +163,10 @@ def test(config, model, jpeg, test_loader_1, test_loader_2, loss_alex, loss_vgg,
             test_df_message_correct += ((encoded_trump_df_message > 0.5) == trump_message).sum().item() + ((encoded_cage_df_message > 0.5) == cage_message).sum().item()
             test_message_correct += ((encoded_trump_message > 0.5) == trump_message).sum().item() + ((encoded_cage_message > 0.5) == cage_message).sum().item()
 
-            trump_test_x_160 = trump_test_x.clone()
-            img_probs = resnet(trump_test_x_160)
-            img_probs_softmax = torch.softmax(img_probs, dim=1)
-            label_tensor = torch.argmax(img_probs_softmax, dim=1)
-            for i in range(len(label_tensor)):
-                if label_tensor[i] == min_label:
-                    trump_suc_real = trump_suc_real + 1
-
-
-            cage_test_x_160 = cage_test_x.clone()
-            img_probs = resnet(cage_test_x_160)
-            img_probs_softmax = torch.softmax(img_probs, dim=1)
-            label_tensor = torch.argmax(img_probs_softmax, dim=1)
-
-            for i in range(len(label_tensor)):
-                if label_tensor[i] == max_label:
-                    cage_suc_real = cage_suc_real + 1
-
-            encoded_trump_df_160 = encoded_trump_df.clone()
-            img_probs = resnet(encoded_trump_df_160) 
-            img_probs_softmax = torch.softmax(img_probs, dim=1)
-            label_tensor = torch.argmax(img_probs_softmax, dim=1)
-
-            for i in range(len(label_tensor)):
-                if label_tensor[i] != max_label:
-                    trump_suc = trump_suc + 1
-            encoded_cage_df_160 = encoded_cage_df.clone()
-            img_probs = resnet(encoded_cage_df_160)  
-            img_probs_softmax = torch.softmax(img_probs, dim=1)
-            label_tensor = torch.argmax(img_probs_softmax, dim=1)
-
-            for i in range(len(label_tensor)):
-                if label_tensor[i] != min_label:
-                    cage_suc = cage_suc + 1
-            trump_df_160 = trump_df.clone()
-            img_probs = resnet(trump_df_160) 
-            img_probs_softmax = torch.softmax(img_probs, dim=1)
-            label_tensor = torch.argmax(img_probs_softmax, dim=1)
-
-            for i in range(len(label_tensor)):
-                if label_tensor[i] == max_label:
-                    trump_suc_ori = trump_suc_ori + 1
-            cage_df_160 = cage_df.clone()
-            img_probs = resnet(cage_df_160)  
-            img_probs_softmax = torch.softmax(img_probs, dim=1)
-            label_tensor = torch.argmax(img_probs_softmax, dim=1)
-
-            for i in range(len(label_tensor)):
-                if label_tensor[i] == min_label:
-                    cage_suc_ori = cage_suc_ori + 1
-
             test_size += trump_test_x.shape[0] + cage_test_x.shape[0]
 
-        test_message_acc = test_message_correct / (test_size * args.message_size)
-        test_df_message_acc = test_df_message_correct / (test_size * args.message_size)
+        test_message_acc = test_message_correct / (test_size * message_size)
+        test_df_message_acc = test_df_message_correct / (test_size * message_size)
         trump_psnr_avg = trump_psnr_sum / trump_true_size
         cage_psnr_avg = cage_psnr_sum / cage_true_size
         trump_ssim_avg = trump_ssim_sum / trump_true_size
@@ -246,7 +223,6 @@ def main():
     loss_vgg = lpips.LPIPS(net='vgg').to(device)  # closer to "traditional" perceptual loss
 
     height, width = 160, 160 
-    message_size = args.message_size
 
     test_config = load_yaml(args.config_path)['test'] 
     trump_path = test_config['trump_path'] 
@@ -254,11 +230,11 @@ def main():
     model_path = test_config['model_path'] 
     save_path = test_config['save_path']
     quality = test_config['quality']
+    message_size =test_config['message_size']
+    batch_size = test_config['batch_size']
 
     print(f'Results will be save at {save_path}') 
     os.makedirs(save_path, exist_ok=True) 
-    save_result = ['encode', 'encode_fake', 'fake', 'real']
-    for path in save_result: os.makedirs(os.path.join(save_path, 'img', path), exist_ok=True)
 
     print(f'Load model from {model_path}') 
     model = DualDefense(message_size,in_channels=3,device=device) 
@@ -268,14 +244,11 @@ def main():
     model.encoder.eval()
     model.decoder.eval()
 
-    print('Load classifier') 
-    resnet = load_model(device, type='vgg') 
-
     print('Split & Load dataset') 
     _, _, trump_test_dataset = split_dataset(trump_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1)
     _, _, cage_test_dataset = split_dataset(cage_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1) 
-    trump_test_loader = DataLoader(trump_test_dataset, batch_size=args.batch_size, shuffle=False)
-    cage_test_loader = DataLoader(cage_test_dataset, batch_size=args.batch_size, shuffle=False)
+    trump_test_loader = DataLoader(trump_test_dataset, batch_size=batch_size, shuffle=False)
+    cage_test_loader = DataLoader(cage_test_dataset, batch_size=batch_size, shuffle=False)
 
     assert len(trump_test_loader) == len(cage_test_loader), "The pair data size should be same"
     jpeg = DiffJPEG.DiffJPEG(
@@ -287,11 +260,8 @@ def main():
     test(
         (message_size, save_path),
         model,
-        jpeg,
         trump_test_loader, cage_test_loader,
         loss_alex, loss_vgg,
-        resnet,
-        min_label=38, max_label=397,
         device=device
          )
 
