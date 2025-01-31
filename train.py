@@ -1,7 +1,3 @@
-# author:oldpan
-# data:2018-4-16
-# Just for study and research
-
 from __future__ import print_function
 import argparse
 import os
@@ -16,12 +12,11 @@ from torch.nn import functional as F
 import torch.backends.cudnn as cudnn
 
 from models import Autoencoder, toTensor, var_to_np
-from util import get_image_paths, load_images, stack_images, EarlyStopping
+from util import get_image_paths, load_images, stack_images, VGGPerceptualLoss
 from training_data import get_training_data
 import matplotlib.pyplot as plt 
 from tqdm import tqdm  
 from torch import optim
-
 parser = argparse.ArgumentParser(description='DeepFake-Pytorch')
 parser.add_argument('--batch_size', type=int, default=64, metavar='N',
                     help='input batch size for training (default: 64)')
@@ -32,7 +27,7 @@ parser.add_argument('--no-cuda', action='store_true', default=False,
                     help='enables CUDA training')
 parser.add_argument('--seed', type=int, default=1, metavar='S',
                     help='random seed (default: 1)')
-parser.add_argument('--log-interval', type=int, default=200, metavar='N',
+parser.add_argument('--log-interval', type=int, default=1000, metavar='N',
                     help='how many batches to wait before logging training status')
 parser.add_argument('--save_dir', type=str)
 
@@ -57,21 +52,17 @@ images_A = load_images(images_A) / 255.0
 images_B = load_images(images_B) / 255.0
 
 images_A += images_B.mean(axis=(0, 1, 2)) - images_A.mean(axis=(0, 1, 2))
-
-
 model = Autoencoder().to(device)
 
 start_epoch = 0
 print('===> Start from scratch')
 criterion = nn.L1Loss()
-perceptual_loss = nn.MSELoss()#Add(Yoojin)
+
 alpha = 1.0  # L1 loss weight
-beta = 0.01  # perceptual loss weight
+beta = 0.08  # perceptual loss weight
 
 lr_list_1 = []
 lr_list_2 = []
-
-#Modified(Yoojin)
     
 optimizer_1 = optim.Adam([{'params': model.encoder.parameters()},
                           {'params': model.decoder_A.parameters()}]
@@ -81,14 +72,15 @@ optimizer_2 = optim.Adam([{'params': model.encoder.parameters()},
                          , lr=5e-5, betas=(0.5, 0.999))
 
 schedule_config = {
-    'milestones':[1000, 4000, 8000, 12000],
+    'milestones':[4000, 8000, 12000],
     'gamma' : 0.5,
 }
 scheduler_1 = optim.lr_scheduler.MultiStepLR(optimizer_1, **schedule_config)
 scheduler_2 = optim.lr_scheduler.MultiStepLR(optimizer_2, **schedule_config)
-#early_stopping = EarlyStopping(patience=200, min_delta=0.0001)
 min_loss = np.inf 
+perceptual_loss = VGGPerceptualLoss().to(device)
 
+    
 if __name__ == "__main__":
     save_root = args.save_dir
     checkpoint_dir = os.path.join(save_root, 'checkpoint')
@@ -121,8 +113,8 @@ if __name__ == "__main__":
         warped_B = model(warped_B, 'B')
 
         #Modified(Yoojin)
-        loss1 = alpha * criterion(warped_A, target_A) + beta * perceptual_loss(warped_A, target_A)
-        loss2 = alpha * criterion(warped_B, target_B) + beta * perceptual_loss(warped_B, target_B)
+        loss1 = alpha * criterion(warped_A, target_A)  + beta * perceptual_loss(warped_A, target_A)
+        loss2 = alpha * criterion(warped_B, target_B)  + beta * perceptual_loss(warped_B, target_B)
 
         loss = loss1.item() + loss2.item()
         loss1.backward()
@@ -174,7 +166,7 @@ if __name__ == "__main__":
             plt.savefig(os.path.join(outputs, 'lr_plot.png'))
             plt.close()
 
-        if loss < min_loss:
+        if loss < min_loss and epoch > 100:
             min_loss = loss
             test_A_ = target_A[0:14]
             test_B_ = target_B[0:14]
@@ -206,9 +198,8 @@ if __name__ == "__main__":
         figure = np.clip(figure * 255, 0, 255).astype('uint8')
 
         cv2.imwrite(os.path.join(outputs, 'output.png'), figure)
-        
-        # if early_stopping(loss1.item() + loss2.item(), model, os.path.join(checkpoint_dir, 'bc_ckpt_best.t7')):
-        #     break
+        if min_loss == loss and epoch % args.log_interval == 0:
+            cv2.imwrite(os.path.join(outputs, f'output_e{epoch}.png'), figure)
 
         key = cv2.waitKey(1)
         if key == ord('q'):

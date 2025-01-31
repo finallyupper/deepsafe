@@ -2,6 +2,7 @@ import cv2
 import numpy
 import os
 import torch
+from torchvision import models
 
 def get_image_paths(directory):
     return [x.path for x in os.scandir(directory) if x.name.endswith(".jpg") or x.name.endswith(".png") or x.name.endswith(".JPG")]
@@ -64,3 +65,16 @@ class EarlyStopping:
                 print("EarlyStopping: Stopping training.")
                 return True
         return False
+    
+class VGGPerceptualLoss(nn.Module):
+    def __init__(self):
+        super(VGGPerceptualLoss, self).__init__()
+        vgg = models.vgg16(pretrained=True).features[:16].eval() 
+        for param in vgg.parameters():
+            param.requires_grad = False 
+        self.vgg = vgg
+
+    def forward(self, generated, target):
+        gen_features = self.vgg(generated)
+        target_features = self.vgg(target)
+        return F.mse_loss(gen_features, target_features)
