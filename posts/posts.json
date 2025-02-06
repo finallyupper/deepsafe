@@ -1,35 +1,5 @@
 [
     {
-        "id": 1,
-        "title": "Sample Post 1",
-        "content": "This is the content for Sample Post 1.",
-        "image_url": "/images/start2.png"
-    },
-    {
-        "id": 2,
-        "title": "Sample Post 2",
-        "content": "This is the content for Sample Post 2.",
-        "image_url": "/images/start2.png"
-    },
-    {
-        "id": 3,
-        "title": "Sample Post 3",
-        "content": "This is the content for Sample Post 3.",
-        "image_url": "/images/start2.png"
-    },
-    {
-        "id": 4,
-        "title": "test",
-        "content": "1234",
-        "image_url": "/images/uploaded_image.png"
-    },
-    {
-        "id": 5,
-        "title": "\u3141\u3134\u3147",
-        "content": "\u3141\u3134\u3147\u3141\u3134",
-        "image_url": "/images/1eb4b7b8-1df2-420f-9c69-c1a488d79f47.png"
-    },
-    {
         "id": 6,
         "title": "123",
         "content": "12313",
@@ -46,5 +16,23 @@
         "title": "\u3147",
         "content": "\u3147",
         "image_url": "/images/256e5018-1dd0-4f99-a285-496df3626cba.png"
+    },
+    {
+        "id": 9,
+        "title": "\uc774\ub807\uac8c",
+        "content": "\ud558\uc2dc\uba74 \ub429\ub2c8\ub2e4.",
+        "image_url": "/images/38ed66ef-256d-499d-b51f-1e0c62d3f4e1.png"
+    },
+    {
+        "id": 10,
+        "title": "test",
+        "content": "test",
+        "image_url": "/images/d17af2e4-6347-4ad0-a2ef-f2e7ff6df5eb.png"
+    },
+    {
+        "id": 11,
+        "title": "tt",
+        "content": "tt",
+        "image_url": "/images/f3f750b7-c4aa-44fe-9279-9fc933680ded.png"
     }
 ]

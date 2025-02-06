@@ -17,10 +17,13 @@ import uuid
 
 app = FastAPI()
 
-
+origins = {
+    "http://localhost:3000",
+    "localhost:3000",
+}
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 모든 도메인 허용 (배포 시 특정 도메인으로 제한 권장)
+    allow_origins=origins,  # 모든 도메인 허용 (배포 시 특정 도메인으로 제한 권장)
     allow_credentials=True,
     allow_methods=["*"],  # 모든 HTTP 메서드 허용
     allow_headers=["*"],  # 모든 HTTP 헤더 허용
@@ -91,13 +94,12 @@ def upload_post(request: UploadPostRequest):
 
 @app.post("/face-swap")
 def face_swap(request: FaceSwapRequest):
-    # Placeholder for face swap logic
-    target_image_path = os.path.join(
-        IMAGES_DIR, os.path.basename(request.target_image_url)
-    )
-    source_image_path = os.path.join(
-        IMAGES_DIR, os.path.basename(request.source_image_url)
-    )
+
+    target_image_filename = os.path.basename(request.target_image_url)
+    source_image_filename = os.path.basename(request.source_image_url)
+    target_image_path = os.path.join(IMAGES_DIR, target_image_filename)
+    source_image_path = os.path.join(IMAGES_DIR, source_image_filename)
+    print(target_image_path, source_image_path)
 
     if not os.path.exists(target_image_path) or not os.path.exists(source_image_path):
         raise HTTPException(status_code=404, detail="One or both images not found.")
