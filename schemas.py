@@ -5,6 +5,7 @@ from typing import List, Optional
 class GetPostResponse(BaseModel):
     id: int
     title: str
+    user: str
     content: str
     image_url: str
 
@@ -12,6 +13,7 @@ class GetPostResponse(BaseModel):
 class UploadPostRequest(BaseModel):
     title: str
     image_url: str
+    user: str
     content: str
 
 
@@ -19,6 +21,7 @@ class UploadPostResponse(BaseModel):
     id: int
     title: str
     image_url: str
+    user: str
     content: str
 
 

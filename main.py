@@ -14,6 +14,10 @@ import os
 import shutil
 import json
 import uuid
+import torch
+from .ddf import crop_and_encode_image, USER_WATERMARK_IDS, apply_faceswap
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 app = FastAPI()
 
@@ -80,13 +84,29 @@ def get_posts():
 @app.post("/upload-post", response_model=UploadPostResponse)
 def upload_post(request: UploadPostRequest):
     posts = load_posts()
+    if not posts:
+        posts = []
     post_id = len(posts) + 1
     post = {
         "id": post_id,
+        "user": request.user,
         "title": request.title,
         "content": request.content,
         "image_url": request.image_url,
     }
+    image_url = post["image_url"]
+    # 해당 image_url encoding 하기. ddf main 참고
+    if post["user"] == "byeon" or post["user"] == "cha":
+        post = crop_and_encode_image(
+            "byeon_cha", image_url, USER_WATERMARK_IDS[post["user"]], device
+        )
+    elif post["user"] == "win" or post["user"] == "chu":
+        post = crop_and_encode_image(
+            "win_chuu", image_url, USER_WATERMARK_IDS[post["user"]], device
+        )
+    post["image_url"] = os.path.join(
+        os.path.dirname(image_url), "encoded_" + os.path.basename(image_url)
+    )
     posts.append(post)
     save_posts(posts)
     return post
@@ -104,11 +124,30 @@ def face_swap(request: FaceSwapRequest):
     if not os.path.exists(target_image_path) or not os.path.exists(source_image_path):
         raise HTTPException(status_code=404, detail="One or both images not found.")
 
+    # face swap 코드 추가
+
     swapped_image_path = os.path.join(
         IMAGES_DIR, f"swapped_{os.path.basename(request.target_image_url)}"
     )
-    # Simulate face swap by copying the target image as the result
-    shutil.copy(target_image_path, swapped_image_path)
+
+    for post in load_posts():
+        if post["image_url"] == request.target_image_url:
+            target_user = post["user"]
+            if target_user == "byeon" or target_user == "cha":
+                apply_faceswap(
+                    model_type="byeon_cha",
+                    swapped_image_path=swapped_image_path,
+                    src_path=source_image_path,
+                    tgt_path=post["image_url"],
+                )
+            elif target_user == "win" or target_user == "chu":
+                apply_faceswap(
+                    model_type="win_chuu",
+                    swapped_image_path=swapped_image_path,
+                    src_path=source_image_path,
+                    tgt_path=post["image_url"],
+                )
+            break
 
     return {"swapped_image_url": f"/images/{os.path.basename(swapped_image_path)}"}
 
