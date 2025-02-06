@@ -1,0 +1,25 @@
+# config.yaml
+train:
+  batch_size: 16 # 32
+  lr: 0.0005 
+  epoch: 2500
+  start_decode: 30 # d_iter
+  clip: 15
+  message_size: 15 # 4
+  T_max: 50 
+  name: bc-ckpt-ddf 
+  lambda_val: 2 # beta
+  alpha_val: 0.5 # alpha
+  
+  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/byeonFace
+  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/chaFace 
+
+test:
+  batch_size: 2 # 16
+  message_size: 4
+  quality: 50 # JPEG quality
+
+  model_path: /data1/yoojinoh/def/train/0127_bc_ddf/bc-ckpt-ddf/ckpt_best_lam2_al0.5.pt
+  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/byeonFace
+  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/chaFace 
+  save_path: /data1/yoojinoh/def/eval/0128_bc_ddf
