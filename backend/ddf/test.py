@@ -22,7 +22,7 @@ def load_model(device, type='vgg'):
     return resnet  
 
 
-def test(config, model, test_loader_1, test_loader_2, loss_alex, loss_vgg, min_label, max_label, device):
+def test(config, model, test_loader_1, test_loader_2, loss_alex, loss_vgg, device):
     message_size, save_path = config
     test_message_correct, test_df_message_correct, test_size = 0, 0, 0
     trump_psnr_sum, cage_psnr_sum, trump_ssim_sum, cage_ssim_sum = 0, 0, 0, 0
@@ -232,12 +232,13 @@ def main():
     quality = test_config['quality']
     message_size =test_config['message_size']
     batch_size = test_config['batch_size']
+    model_type = test_config['model_type']
 
     print(f'Results will be save at {save_path}') 
     os.makedirs(save_path, exist_ok=True) 
 
     print(f'Load model from {model_path}') 
-    model = DualDefense(message_size,in_channels=3,device=device) 
+    model = DualDefense(message_size,in_channels=3,device=device, model_type=model_type) 
     model.encoder.load_state_dict(torch.load(model_path)['encoder'], strict=False)
     model.decoder.load_state_dict(torch.load(model_path)['decoder'], strict=False)
 
@@ -245,8 +246,8 @@ def main():
     model.decoder.eval()
 
     print('Split & Load dataset') 
-    _, _, trump_test_dataset = split_dataset(trump_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1)
-    _, _, cage_test_dataset = split_dataset(cage_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1) 
+    _, _, trump_test_dataset = split_dataset(trump_path, test_transform=transform_test, val_ratio=0.0, test_ratio=1.0)
+    _, _, cage_test_dataset = split_dataset(cage_path, test_transform=transform_test, val_ratio=0.0, test_ratio=1.0) 
     trump_test_loader = DataLoader(trump_test_dataset, batch_size=batch_size, shuffle=False)
     cage_test_loader = DataLoader(cage_test_dataset, batch_size=batch_size, shuffle=False)
 

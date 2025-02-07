@@ -8,8 +8,10 @@ from ddf.faceswap_pytorch.models import Autoencoder_df
 CHECKPOINTS = {
     'trump_cage' : '/data1/yoojinoh/def/241116_faceswap_160/checkpoint/autoencoder_160.t7', 
     'winter_karina': '/data1/yoojinoh/def/250101_faceswap_160/checkpoint/ae_win_kar_160.t7',
-    'byeon_cha': '/data1/yoojinoh/def/train/0128_fc_bc_v2/checkpoint/bc_ckpt_best.t7' # 변우석, 차은우
+    'byeon_cha': '/data1/yoojinoh/def/train/0128_fc_bc_v2/checkpoint/bc_ckpt_best.t7',
+    'win_chuu': '/home/yoojinoh/Others/ckpts/faceswap/wc_ckpt_best_82000.t7'
 }
+
 
 class DualDefense(nn.Module):
     def __init__(self, message_size, in_channels,device=False,model_type='byeon_cha', ):
