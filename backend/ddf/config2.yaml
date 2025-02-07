@@ -1,0 +1,27 @@
+# config.yaml
+train:
+  batch_size: 16 # 32
+  lr: 0.0005 
+  epoch: 2500
+  start_decode: 30 # d_iter
+  clip: 15
+  message_size: 4 # 4
+  T_max: 50 
+  name: bc-ckpt-ddf 
+  lambda_val: 2 # beta
+  alpha_val: 0.5 # alpha
+  
+  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/byeonFace
+  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/chaFace 
+
+test:
+  batch_size: 2 # 16
+  message_size: 15
+  quality: 50 # JPEG quality
+
+  model_path: /home/yoojinoh/Others/ckpts/winchuu_ckpt_best_img_lam1_al2.pt
+  trump_path: /data1/yoojinoh/def/new_data/faceDataset2/winterFace
+  cage_path: /data1/yoojinoh/def/new_data/faceDataset2/chuuFace
+  save_path: /data1/yoojinoh/def/eval/winchuu_0207
+
+  model_type: win_chuu
