@@ -2,6 +2,11 @@
 ## Introduction
 The misuse of deepfake technology poses serious security threats, such as identity theft. DeepSafe is a defense system that employs an Adversarial Robust Watermarking technique to disrupt face-swapping models while enabling image source tracking. Based on the [Dual Defense framework](https://ieeexplore.ieee.org/document/10486948), this system utilizes the Original-domain Feature Emulation Attack (OFEA) method to embed an invisible watermark, preventing face swapping while ensuring identity traceability.  
 
+<div style="text-align: center;">
+  <img src="./assets/ezgif.com-animated-gif-maker.gif" alt="gif">
+  <p>Original Image / Encoded / Protected 🔒/ Attacked 🔓</p>
+</div>
+
 *DeepSafe offers a two-layered defense mechanism against deepfake attacks:*
 ### 1️⃣ Preemptive Deepfake Prevention ✅
 - When users upload their images, DeepSafe embeds an invisible adversarial watermark that disrupts face-swapping models.
@@ -13,8 +18,9 @@ The misuse of deepfake technology poses serious security threats, such as identi
 - The watermark can be extracted from manipulated images, allowing for identity tracking and alerting affected users
 
 
+#### Our Pipeline looks following:
 <p align="center">
-  <img src="./assets/pipeline.png" width="80%">
+  <img src="./assets/pipeline.png" width="70%">
 </p>
 
 ## ⚒️ How to Play
@@ -23,7 +29,7 @@ npm install
 npm run dev
 ```
 
-## Dataset & Preprocessing 
+## 📂 Dataset & Preprocessing 
 - 4 identities: Winter, Chuu, Cha Eun-woo, and Byeon Woo-seok (800 images per person, total: 4,000 images)- Extracted frames from YouTube videos (Winter: 35, Chuu: 48, Cha Eun-woo: 31, Byeon Woo-seok: 48 videos)
 - Preprocessing:
     - Extracted frames every 20 frames using OpenCV
@@ -63,21 +69,26 @@ npm run dev
 <p align="center">
   <table>
     <tr>
-      <th>Original Image</th>
-      <th>Encoded Image</th>
-      <th>Protected 😀</th>
-      <th>Attacked 🥵</th>
+      <th><h2> Original Image →  Encoded ✅ →  Protected 😀🔒 → Attacked 🥵🔓</h2></th>
+    </tr>
+    <tr>
+      <td><img src="./assets/58_2_combined_A.png" width="100%"></td>
+    </tr>
+    <tr>
+      <td><img src="./assets/25_0_combined_A.png" width="100%"></td>
+    </tr>
+    <tr>
+      <td><img src="./assets/392_1_combined_B.png" width="100%"></td>
+    </tr>
+    <tr>
+      <td><img src="./assets/91_1_combined_B.png" width="100%"></td>
+    </tr>
+    <tr>
+      <td><img src="./assets/62_1_combined_B.png" width="100%"></td>
     </tr>
   </table>
 </p>
 
-
-<p align="center">
-  <img src="./assets/58_2_combined_A.png" width="50%">
-</p>
-<p align="center">
-  <img src="./assets/25_0_combined_A.png" width="50%">
-</p>
 
 ## References 
 - Dual Defense official codes: https://github.com/Xming-zzz/DualDefense?tab=readme-ov-file
