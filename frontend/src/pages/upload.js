@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Navbar from "../components/Navbar";
+import publicImages from "../constants/publicImages.json";
 
 export default function Upload() {
   const router = useRouter();
@@ -11,12 +12,7 @@ export default function Upload() {
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState(""); // To store the image URL
   const [showModal, setShowModal] = useState(false); // To control the modal visibility
-  const publicImages = {
-    chu: ["/chu/chuu1.jpg", "/chu/chuu2.jpg", "/chu/chuu3.jpg", "/chu/chuu4.jpg"],
-    cha: ["/cha/chaeunwoo1.jpg", "/cha/chaeunwoo2.jpg", "/cha/chaeunwoo3.jpg", "/cha/chaeunwoo4.jpg"],
-    byeon: ["/byeon/byeonwooseok1.jpg", "/byeon/byeonwooseok2.jpg", "/byeon/byeonwooseok3.jpg", "/byeon/byeonwooseok4.jpg"],
-    winter: ["/winter/winter1.jpg", "/winter/winter2.jpg", "winter/winter3.jpg", "winter/winter4.jpg"],
-  };
+
 
   const [activeTab, setActiveTab] = useState("chu");
 

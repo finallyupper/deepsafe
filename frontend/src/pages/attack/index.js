@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/router';
-import Info from '../../components/Info';
+
 import Navbar from "../../components/Navbar";
-import { match } from "assert";
+
+import publicImages from "../constants/publicImages.json";
 
 export default function Home() {
   const router = useRouter();
@@ -12,19 +13,14 @@ export default function Home() {
   const [imageUrl, setImageUrl] = useState("");
   const [swappedImage, setSwappedImage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
+
   const [showModal, setShowModal] = useState(false); // To control the modal visibility
   const [posts, setPosts] = useState([]);
   const [showPostModal, setShowPostModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState("");
   const [imageUser, setImageUser] = useState("");
   
-  const publicImages = {
-    chu: ["/chu/chuu1.jpg", "/chu/chuu2.jpg", "/chu/chuu3.jpg", "/chu/chuu4.jpg"],
-    cha: ["/cha/chaeunwoo1.jpg", "/cha/chaeunwoo2.jpg", "/cha/chaeunwoo3.jpg", "/cha/chaeunwoo4.jpg"],
-    byeon: ["/byeon/byeon_1.jpg", "/byeon/byeon_2.jpg", "/byeon/byeon_3.jpg", "/byeon/byeon_4.jpg"],
-    winter: ["/winter/winter1.jpg", "/winter/winter2.jpg", "winter/winter3.jpg", "winter/winter4.jpg"],
-  };
+ 
 
   
   useEffect(() => {
