@@ -1,2 +1,0 @@
-# deepsafe 
-### Faceswap Training Codes
