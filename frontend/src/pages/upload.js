@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Navbar from "../components/Navbar";
-import publicImages from "../constants/publicImages.json";
+
 
 export default function Upload() {
   const router = useRouter();
@@ -12,7 +12,14 @@ export default function Upload() {
   const [isLoading, setIsLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState(""); // To store the image URL
   const [showModal, setShowModal] = useState(false); // To control the modal visibility
+  const [publicImages, setPublicImages] = useState({});
 
+  useEffect(() => {
+    fetch("/api/images")
+      .then((res) => res.json())
+      .then((data) => setPublicImages(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   const [activeTab, setActiveTab] = useState("chu");
 
@@ -159,7 +166,7 @@ export default function Upload() {
                         </button>
                       ))}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                       {publicImages[activeTab].map((img, index) => (
                         <img
                           key={index}

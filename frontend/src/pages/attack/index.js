@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 import Navbar from "../../components/Navbar";
 
-import publicImages from "../constants/publicImages.json";
+
 
 export default function Home() {
   const router = useRouter();
@@ -20,7 +20,14 @@ export default function Home() {
   const [selectedPost, setSelectedPost] = useState("");
   const [imageUser, setImageUser] = useState("");
   
- 
+  const [publicImages, setPublicImages] = useState({});
+
+  useEffect(() => {
+    fetch("/api/images")
+      .then((res) => res.json())
+      .then((data) => setPublicImages(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   
   useEffect(() => {
