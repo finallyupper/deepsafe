@@ -15,7 +15,7 @@ import shutil
 import json
 import uuid
 import torch
-from .ddf import crop_and_encode_image, USER_WATERMARK_IDS, apply_faceswap
+from ddf import crop_and_encode_image, USER_WATERMARK_IDS, apply_faceswap
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

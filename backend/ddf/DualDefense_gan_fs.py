@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from adv import Adversary_Init
-from encoder_fs import ResNetUNet
-from decoder_fs import Decoder
-from faceswap_pytorch.models import Autoencoder_df
+from ddf.adv import Adversary_Init
+from ddf.encoder_fs import ResNetUNet
+from ddf.decoder_fs import Decoder
+from ddf.faceswap_pytorch.models import Autoencoder_df
 
 CHECKPOINTS = {
     'trump_cage' : '/data1/yoojinoh/def/241116_faceswap_160/checkpoint/autoencoder_160.t7', 

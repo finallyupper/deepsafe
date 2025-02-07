@@ -1,7 +1,7 @@
 import torch
 import torch.utils.data
 from torch import nn, optim
-from faceswap_pytorch.padding_same_conv import Conv2d
+from ddf.faceswap_pytorch.padding_same_conv import Conv2d
 
 def toTensor(img):
     img = torch.from_numpy(img.transpose((0, 3, 1, 2)))

@@ -1,7 +1,7 @@
 import torch
 import os
 import cv2
-from DualDefense_gan_fs import DualDefense 
+from ddf.DualDefense_gan_fs import DualDefense 
 import warnings
 warnings.filterwarnings('ignore')
 from PIL import Image
@@ -178,17 +178,17 @@ def crop_and_encode_image(model_type, image_path, message, device, alpha=1.0):
 
 
 
-if __name__ == "__main__":
-    device = torch.device(f'cuda' if torch.cuda.is_available() else 'cpu')
-    #TODO(Yoojin): 개별 user를 위한 watermark information으로 수정
-    crop_and_encode_image('byeon_cha', 
-                          '/home/yoojinoh/Others/byeon_total5.jpg', 
-                          USER_WATERMARK_IDS['byeon'], 
-                          device) 
-    crop_and_encode_image('byeon_cha', 
-                          '/home/yoojinoh/Others/cha_total2.jpg', 
-                          USER_WATERMARK_IDS['cha'], 
-                          device) 
-    apply_faceswap(model_type="byeon_cha",  swapped_image_path="/home/yoojinoh/Others/", 
-                   src_path="/home/yoojinoh/Others/encoded_byeon_total5.jpg", 
-                   tgt_path="/home/yoojinoh/Others/encoded_cha_total2.jpg")
+# if __name__ == "__main__":
+#     device = torch.device(f'cuda' if torch.cuda.is_available() else 'cpu')
+#     #TODO(Yoojin): 개별 user를 위한 watermark information으로 수정
+#     crop_and_encode_image('byeon_cha', 
+#                           '/home/yoojinoh/Others/byeon_total5.jpg', 
+#                           USER_WATERMARK_IDS['byeon'], 
+#                           device) 
+#     crop_and_encode_image('byeon_cha', 
+#                           '/home/yoojinoh/Others/cha_total2.jpg', 
+#                           USER_WATERMARK_IDS['cha'], 
+#                           device) 
+#     apply_faceswap(model_type="byeon_cha",  swapped_image_path="/home/yoojinoh/Others/", 
+#                    src_path="/home/yoojinoh/Others/encoded_byeon_total5.jpg", 
+#                    tgt_path="/home/yoojinoh/Others/encoded_cha_total2.jpg")
