@@ -22,7 +22,7 @@ export default function Home() {
   const publicImages = {
     chu: ["/chu/chuu1.jpg", "/chu/chuu2.jpg", "/chu/chuu3.jpg", "/chu/chuu4.jpg"],
     cha: ["/cha/chaeunwoo1.jpg", "/cha/chaeunwoo2.jpg", "/cha/chaeunwoo3.jpg", "/cha/chaeunwoo4.jpg"],
-    byeon: ["/byeon/byeonwooseok1.jpg", "/byeon/byeonwooseok2.jpg", "/byeon/byeonwooseok3.jpg", "/byeon/byeonwooseok4.jpg"],
+    byeon: ["/byeon/byeon_1.jpg", "/byeon/byeon_2.jpg", "/byeon/byeon_3.jpg", "/byeon/byeon_4.jpg"],
     winter: ["/winter/winter1.jpg", "/winter/winter2.jpg", "winter/winter3.jpg", "winter/winter4.jpg"],
   };
 
