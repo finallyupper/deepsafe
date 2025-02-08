@@ -7,6 +7,7 @@ warnings.filterwarnings('ignore')
 from PIL import Image
 from torchvision.transforms import transforms
 import numpy as np 
+from ddf.engine.utils import blend_image 
 
 _DDF_MODEL_MAPPINGS = {
     "byeon_cha": "/home/yoojinoh/Others/ckpts/ckpt_best_img_lam1_al2.pt",
@@ -76,7 +77,7 @@ def load_model(model_type, mode = 'eval', device=None):# Modified
         model.decoder.eval()
     return model 
 
-def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, encoded=True):
+def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, src_user, encoded=True):
     """
     Apply dual defense and save the faceswapped image (swap face a with face b)
 
@@ -105,8 +106,13 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, encoded=T
         tgt_image = tgt_image.to(device) 
 
         # Apply faceswap 
-        _, _, _image_a_deepfake = model.deepfake1(src_image, 'B') 
-        _, _, _image_b_deepfake = model.deepfake1(tgt_image, 'A')
+        assert src_user in ['cha', 'byeon', 'win', 'chu'], f"There is no user named {src_user}"
+        if src_user in ['cha', 'chu']:     
+            _, _, _image_a_deepfake = model.deepfake1(src_image, 'A') 
+            _, _, _image_b_deepfake = model.deepfake1(tgt_image, 'B')
+        else: # ['byeon', 'win']
+            _, _, _image_a_deepfake = model.deepfake1(src_image, 'B') 
+            _, _, _image_b_deepfake = model.deepfake1(tgt_image, 'A')
 
         image_a_deepfake =(_image_a_deepfake[0]  * 255).permute(1, 2, 0).detach().cpu().numpy()
         image_b_deepfake =(_image_b_deepfake[0]  * 255).permute(1, 2, 0).detach().cpu().numpy()
@@ -157,7 +163,7 @@ def restore_original(original_image, encoded_face, coord, result_path):
     result_image[y:y+h, x:x+w] = resized_encoded_face
     save_image(result_image, result_path) 
     print("Restored to original image")
-    
+
 def crop_and_encode_image(model_type, image_path, message, device, alpha=1.0):
     """
     Inputs original image, and save image with encoded face
@@ -174,7 +180,10 @@ def crop_and_encode_image(model_type, image_path, message, device, alpha=1.0):
     model = load_model(model_type, 'eval', device)
     message = torch.FloatTensor(message).to(device).detach()
     encoded_face = encode_image(model, transformed_cropped_face, message)[0]
-    encoded_face = 0.5 * encoded_face + 0.5 * transformed_cropped_face #CHECK(Yoojin) ===================================
+    
+    #Modified(Yoojin)
+    encoded_face = blend_image(encoded_face, transformed_cropped_face).to(device)
+
     print(f'Successfully encoded image with message {message}')
     result_path = os.path.join(os.path.dirname(image_path), 'encoded_' + os.path.basename(image_path))
     restore_original(original_image, encoded_face, (x, y, w, h), result_path) 

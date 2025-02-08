@@ -22,6 +22,6 @@ test:
   model_path: /home/yoojinoh/Others/ckpts/winchuu_ckpt_best_img_lam1_al2.pt
   trump_path: /data1/yoojinoh/def/new_data/faceDataset2/winterFace
   cage_path: /data1/yoojinoh/def/new_data/faceDataset2/chuuFace
-  save_path: /data1/yoojinoh/def/eval/winchuu_0207
+  save_path: /data1/yoojinoh/def/eval/winchuu_0208
 
   model_type: win_chuu

@@ -6,7 +6,7 @@ import argparse
 import numpy as np 
 import yaml 
 import pywt 
-from facenet_pytorch.models.inception_resnet_v1 import InceptionResnetV1 
+from ddf.facenet_pytorch.models.inception_resnet_v1 import InceptionResnetV1 
 import torch.nn.functional as F
 from skimage.exposure import match_histograms
 
@@ -340,3 +340,9 @@ def blend_images(source, reference, alpha=0.3):
         matched_image = alpha * source_img + (1 - alpha) * reference_img
         matched_images.append(torch.tensor(matched_image).permute(2, 0, 1))
     return torch.stack(matched_images)
+
+def blend_image(source, reference, alpha=0.3):
+    source_img = source.detach().cpu().numpy().transpose(1, 2, 0) if isinstance(source, torch.Tensor) else source.transpose(1, 2, 0)
+    reference_img = reference.detach().cpu().numpy().transpose(1, 2, 0) if isinstance(reference, torch.Tensor) else reference.transpose(1, 2, 0)
+    matched_image = alpha * source_img + (1 - alpha) * reference_img
+    return torch.tensor(matched_image).permute(2, 0, 1)
