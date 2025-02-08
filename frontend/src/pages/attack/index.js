@@ -212,13 +212,13 @@ export default function Home() {
                         </button>
                       ))}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                       {publicImages[activeTab].map((img, index) => (
                         <img
                           key={index}
                           src={img}
                           alt={`Public Image ${index}`}
-                          className="w-full aspect-square object-cover cursor-pointer hover:scale-105 duration-300"
+                          className="w-48 aspect-square object-cover cursor-pointer hover:scale-105 duration-300"
                           onClick={() => {handlePublicImageSelect(img); setImageUser(activeTab)}}
                         />
                       ))}
@@ -267,11 +267,11 @@ export default function Home() {
                       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                         <div className="relative bg-white p-4 mx-[10vw] rounded-lg shadow-lg">
                           <h2 className="text-xl text-black font-semibold mb-4">Select a source(face) post image.</h2>
-                          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mt-8">
+                          <div className="grid grid-cols-4 gap-2 mt-8">
                             {posts.filter(post => post.user === matchPair(imageUser)).map((post) => (
                               <div
                                 key={post.id}
-                                className="relative cursor-pointer w-24 aspect-square hover:scale-105 duration-300 bg-gray-200 shadow-md overflow-hidden"
+                                className="relative cursor-pointer h-24 aspect-square hover:scale-105 duration-300 bg-gray-200 shadow-md overflow-hidden"
                                 onClick={() => {
                                   setSelectedPost(post.image_url);
                                   setShowPostModal(false);

@@ -172,7 +172,7 @@ export default function Upload() {
                           key={index}
                           src={img}
                           alt={`Public Image ${index}`}
-                          className="w-full aspect-square object-cover cursor-pointer hover:scale-105 duration-300"
+                          className="w-48 aspect-square object-cover cursor-pointer hover:scale-105 duration-300"
                           onClick={() => handlePublicImageSelect(img)}
                         />
                       ))}
