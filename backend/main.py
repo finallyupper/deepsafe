@@ -145,7 +145,7 @@ def face_swap(request: FaceSwapRequest):
         raise HTTPException(status_code=404, detail="One or both images not found.")
 
     swapped_image_path = os.path.join(
-        ABSOLUTE_PATH, f"swapped_{os.path.basename(request.target_image_url)}"
+        ABSOLUTE_PATH, f"images/swapped_{os.path.basename(request.target_image_url)}"
     )
 
     for post in load_posts():
