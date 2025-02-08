@@ -144,12 +144,12 @@ export default function Home() {
   const matchPair = (user) => {
     switch (user) {
       case "chu":
-        return "winter";
+        return "win";
       case "cha":
         return "byeon";
       case "byeon":
         return "cha";
-      case "winter":
+      case "win":
         return "chu";
       default:
         return "Unknown";

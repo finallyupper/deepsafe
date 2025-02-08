@@ -3,7 +3,7 @@ import path from "path";
 
 export default function handler(req, res) {
   const baseDir = path.join(process.cwd(), "public");
-  const categories = ["chu", "cha", "byeon", "winter"];
+  const categories = ["chu", "cha", "byeon", "win"];
   let images = {};
 
   categories.forEach((category) => {
