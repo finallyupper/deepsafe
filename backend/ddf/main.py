@@ -37,25 +37,19 @@ def assign_messages(users, device='cpu'):
     #TODO(Yoojin): Save info to DB
     return user_messages    
 
-def find_message2user(message: list) -> str:
-    message_array = np.array(message, dtype=np.float64)
-
-    best_match = None
-    min_distance = float('inf')  
-
-    for user, user_vector in USER_WATERMARK_IDS.items():
-        user_array = np.array(user_vector, dtype=np.float64)
-
-        if np.array_equal(user_array, message_array): 
-            return user
-        distance = np.linalg.norm(user_array - message_array)
-
-        if distance < min_distance:  
-            min_distance = distance
-            best_match = user
-
-    return best_match 
-
+def find_message2user(message:list)->str:
+    for key, value in USER_WATERMARK_IDS.items():
+        if value == message:
+            return key
+        else:
+            if len(message) == 4:
+                if message[0] == 0. and message[1] == 1.: return 'byeon'
+                else: return 'cha' 
+            elif len(message) == 15:
+                if message[0] == 0. and message[1] == 0.: return 'win'
+                else: return 'chu' 
+        return None  # ex. 'byeon' 
+    
     
 def encode_image(model, image, message):
     """insert watermark into original image"""

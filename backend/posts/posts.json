@@ -19,5 +19,12 @@
         "title": "sdfsdf",
         "content": "sfsdgsd",
         "image_url": "/images/encoded_dc1b6841-c0bb-4a8f-8d4d-fc22631a902f.png"
+    },
+    {
+        "id": 4,
+        "user": "win",
+        "title": "\u3134",
+        "content": "\u3147\u314a",
+        "image_url": "/images/encoded_2860a866-0641-4c3c-8387-36f3d174b8f2.png"
     }
 ]
