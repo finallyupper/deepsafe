@@ -153,7 +153,7 @@ def face_swap(request: FaceSwapRequest):
             source_user = post["user"]
             source_path = os.path.join(ABSOLUTE_PATH, post["image_url"].lstrip("/"))
             if source_user == "byeon" or source_user == "cha":
-                apply_faceswap(
+                result = apply_faceswap(
                     model_type="byeon_cha",
                     swapped_image_path=(swapped_image_path),
                     src_path=source_path,
@@ -161,17 +161,20 @@ def face_swap(request: FaceSwapRequest):
                     src_user=source_user,
                 )
             elif source_user == "win" or source_user == "chu":
-                apply_faceswap(
+                result = apply_faceswap(
                     model_type="win_chuu",
                     swapped_image_path=(swapped_image_path),
                     src_path=source_path,
                     tgt_path=target_image_path,
                     src_user=source_user,
                 )
-            break
 
-    # return {"swapped_image_url": f"/images/{os.path.basename(swapped_image_path)}"}
-    return True
+            result.source_image_url = result.source_image_url.replace(
+                ABSOLUTE_PATH + "/", ""
+            )
+            return result
+
+    return HTTPException(status_code=404, detail="Source image not found.")
 
 
 @app.get("/images/{filename}")
