@@ -14,10 +14,11 @@ import os
 import shutil
 import json
 import uuid
-import torch
-from ddf import crop_and_encode_image, USER_WATERMARK_IDS, apply_faceswap
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# import torch
+# from ddf import crop_and_encode_image, USER_WATERMARK_IDS, apply_faceswap
+
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 app = FastAPI()
 
@@ -35,6 +36,7 @@ app.add_middleware(
 
 POSTS_DIR = "posts"
 IMAGES_DIR = "images"
+ABSOLUTE_PATH = "/home/yoojinoh/Others/deepsafe/backend/"
 POSTS_FILE = os.path.join(POSTS_DIR, "posts.json")
 os.makedirs(POSTS_DIR, exist_ok=True)
 os.makedirs(IMAGES_DIR, exist_ok=True)
@@ -136,30 +138,24 @@ def upload_post(request: UploadPostRequest):
 
 @app.post("/face-swap")
 def face_swap(request: FaceSwapRequest):
+    target_image_path = os.path.join(
+        ABSOLUTE_PATH, request.target_image_url.lstrip("/")
+    )
 
-    target_image_filename = os.path.basename(request.target_image_url)
-    source_image_filename = os.path.basename(request.source_image_url)
-    target_image_path = os.path.join(IMAGES_DIR, target_image_filename)
-    source_image_path = os.path.join(IMAGES_DIR, source_image_filename)
-    print(target_image_path, source_image_path)
-
-    if not os.path.exists(target_image_path) or not os.path.exists(source_image_path):
+    if not os.path.exists(target_image_path):
         raise HTTPException(status_code=404, detail="One or both images not found.")
 
     # face swap 코드 추가
 
-    swapped_image_path = os.path.join(
-        IMAGES_DIR, f"swapped_{os.path.basename(request.target_image_url)}"
-    )
-
     for post in load_posts():
         if post["image_url"] == request.source_image_url:
             source_user = post["user"]
+            source_path = os.path.join(ABSOLUTE_PATH, post["image_url"].lstrip("/"))
             if source_user == "byeon" or source_user == "cha":
                 apply_faceswap(
                     model_type="byeon_cha",
                     swapped_image_path=(swapped_image_path),
-                    src_path=post["image_url"],
+                    src_path=source_path,
                     tgt_path=target_image_path,
                     src_user=source_user,
                 )
@@ -167,13 +163,14 @@ def face_swap(request: FaceSwapRequest):
                 apply_faceswap(
                     model_type="win_chuu",
                     swapped_image_path=(swapped_image_path),
-                    src_path=post["image_url"],
+                    src_path=source_path,
                     tgt_path=target_image_path,
                     src_user=source_user,
                 )
             break
 
-    return {"swapped_image_url": f"/images/{os.path.basename(swapped_image_path)}"}
+    # return {"swapped_image_url": f"/images/{os.path.basename(swapped_image_path)}"}
+    return True
 
 
 @app.get("/images/{filename}")
