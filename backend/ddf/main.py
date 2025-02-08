@@ -37,11 +37,25 @@ def assign_messages(users, device='cpu'):
     #TODO(Yoojin): Save info to DB
     return user_messages    
 
-def find_message2user(message:list)->str:
-    for key, value in USER_WATERMARK_IDS.items():
-        if value == message:
-            return key
-        return None  # ex. 'byeon'
+def find_message2user(message: list) -> str:
+    message_array = np.array(message, dtype=np.float64)
+
+    best_match = None
+    min_distance = float('inf')  
+
+    for user, user_vector in USER_WATERMARK_IDS.items():
+        user_array = np.array(user_vector, dtype=np.float64)
+
+        if np.array_equal(user_array, message_array): 
+            return user
+        distance = np.linalg.norm(user_array - message_array)
+
+        if distance < min_distance:  
+            min_distance = distance
+            best_match = user
+
+    return best_match 
+
     
 def encode_image(model, image, message):
     """insert watermark into original image"""
@@ -131,6 +145,11 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, src_user,
             userb = find_message2user(pred_b_message)
 
             print(f'>> Someone tried to make deepfake with user {usera} and user {userb}')
+            src_output_path = os.path.join(swapped_image_path, 'output_A2B.png')
+            return [
+                {"source_image_url": src_output_path,
+                 "user_prediction": f"Someone tried to make deepfake with user {usera}"}
+                 ]
 
         # restore_original(original_src_image, _image_a_deepfake[0], src_coord, os.path.join(swapped_image_path, 'output_A2B.png')) 
         # restore_original(original_tgt_image, _image_b_deepfake[0], tgt_coord, os.path.join(swapped_image_path, 'output_B2A.png'))  
