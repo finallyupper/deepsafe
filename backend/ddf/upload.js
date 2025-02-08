@@ -100,7 +100,7 @@ export default function Upload() {
       }
 
       // Redirect to home page after successful post upload
-      alert("Image Encoded base on User info!")
+      alert("🔒 Image Encoded base on User info!")
       router.push("/");
     } catch (error) {
       console.error("Error uploading post:", error);

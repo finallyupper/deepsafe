@@ -7,15 +7,14 @@ warnings.filterwarnings('ignore')
 from PIL import Image
 from torchvision.transforms import transforms
 import numpy as np 
-MESSAGE_SIZE = 4
 
 _DDF_MODEL_MAPPINGS = {
-    "byeon_cha": "/home/yoojinoh/Others/ckpt_best_img_lam1_al2.pt",
-    "win_chuu": "",
+    "byeon_cha": "/home/yoojinoh/Others/ckpts/ckpt_best_img_lam1_al2.pt",
+    "win_chuu": "/home/yoojinoh/Others/ckpts/winchuu_ckpt_best_img_lam1_al2.pt",
 }
 
 _TEST_CONFIGS = {
-    "message_size": MESSAGE_SIZE,
+    "message_size": {'byeon_cha': 4, 'win_chuu': 15},
     "height": 160,
     "width": 160
 }
@@ -23,7 +22,9 @@ _TEST_CONFIGS = {
 #NOTE(Yoojin): 임시 유저-메세지 데이터
 USER_WATERMARK_IDS = {
     "byeon": [0., 1., 0., 1.],
-    "cha": [1., 1., 0., 0.]
+    "cha": [1., 1., 0., 0.],
+    "win": [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+    "chu": [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
 } 
 
 def assign_messages(users, device='cpu'):
@@ -65,8 +66,8 @@ def load_image(image_path):
     image = Image.fromarray(cv2.imread(image_path)) #BGR image
     return image
 
-def load_model(model_type, mode = 'eval', device=None):
-    model = DualDefense(_TEST_CONFIGS['message_size'], in_channels=3, model_type=model_type, device=device) 
+def load_model(model_type, mode = 'eval', device=None):# Modified
+    model = DualDefense(_TEST_CONFIGS['message_size'][model_type], in_channels=3, model_type=model_type, device=device) 
     model.encoder.load_state_dict(torch.load(_DDF_MODEL_MAPPINGS[model_type])['encoder'], strict=False)
     model.decoder.load_state_dict(torch.load(_DDF_MODEL_MAPPINGS[model_type])['decoder'], strict=False) 
     
@@ -128,20 +129,21 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, encoded=T
         # restore_original(original_src_image, _image_a_deepfake[0], src_coord, os.path.join(swapped_image_path, 'output_A2B.png')) 
         # restore_original(original_tgt_image, _image_b_deepfake[0], tgt_coord, os.path.join(swapped_image_path, 'output_B2A.png'))  
 
-def crop_image(image_path):
-    cascade = cv2.CascadeClassifier('./data/haarcascade_frontalface_alt.xml')
-    image = cv2.imread(image_path)
-    results = cascade.detectMultiScale(image)
+# def crop_image(image_path):
+#     image_path = os.path.join('ddf', image_path) # ADD(YOOJIN): Path error in backend
+#     cascade = cv2.CascadeClassifier('ddf/data/haarcascade_frontalface_alt.xml') 
+#     image = cv2.imread(image_path)
+#     results = cascade.detectMultiScale(image)
 
-    if len(results) == 0:
-        raise ValueError("No face detected in the image.")
+#     if len(results) == 0:
+#         raise ValueError("No face detected in the image.")
     
-    crop_coord = results[0] 
-    (x, y, w, h) = crop_coord
-    cropped_face = image[y:y+h, x:x+w]
-    original_image = image.copy()
-    print("Sucessfully Cropped image")
-    return original_image, cropped_face, crop_coord
+#     crop_coord = results[0] 
+#     (x, y, w, h) = crop_coord
+#     cropped_face = image[y:y+h, x:x+w]
+#     original_image = image.copy()
+#     print("Sucessfully Cropped image")
+#     return original_image, cropped_face, crop_coord
 
 def restore_original(original_image, encoded_face, coord, result_path):
     (x, y, w, h) = coord 
@@ -165,17 +167,39 @@ def crop_and_encode_image(model_type, image_path, message, device, alpha=1.0):
         message (list) : [1., 0., 1] ->ex. torch.randint(0, 2, (1, 4), dtype=torch.float).to(device).detach()
         device : cpu or gpu
         alpha (float) : the amount to blend encoded image with original image 
-    """
+    """    
     original_image, cropped_face, (x, y, w, h) = crop_image(image_path)
     transformed_cropped_face = get_transform(cropped_face, 160, 160).to(device)
 
     model = load_model(model_type, 'eval', device)
     message = torch.FloatTensor(message).to(device).detach()
     encoded_face = encode_image(model, transformed_cropped_face, message)[0]
-    print('Successfully encoded image')
+    encoded_face = 0.5 * encoded_face + 0.5 * transformed_cropped_face #CHECK(Yoojin) ===================================
+    print(f'Successfully encoded image with message {message}')
     result_path = os.path.join(os.path.dirname(image_path), 'encoded_' + os.path.basename(image_path))
     restore_original(original_image, encoded_face, (x, y, w, h), result_path) 
 
+from mtcnn import MTCNN
+import cv2
+
+def crop_image(image_path):
+    detector = MTCNN()
+    print(f"[DEBUG] Image path = {image_path}")
+    image = cv2.imread(image_path)
+    if image is None:
+        raise ValueError(f"Error loading image from path: {image_path}")
+
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    detections = detector.detect_faces(rgb_image)
+
+    if not detections:
+        raise ValueError("No face detected in the image.")
+
+    # 첫 번째 얼굴 검출 결과 사용
+    x, y, w, h = detections[0]['box']
+    cropped_face = image[y:y+h, x:x+w]
+
+    return image, cropped_face, (x, y, w, h)
 
 
 # if __name__ == "__main__":

@@ -14,7 +14,7 @@ CHECKPOINTS = {
 
 
 class DualDefense(nn.Module):
-    def __init__(self, message_size, in_channels,device=False,model_type='byeon_cha', ):
+    def __init__(self, message_size, in_channels,device=False,model_type=None):
         super().__init__()
         self.encoder = ResNetUNet(message_size)
         self.df_model = Autoencoder_df()
