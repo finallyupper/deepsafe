@@ -52,7 +52,7 @@ export default function Upload() {
       return;
     }
 
-    setIsLoading(true);
+
     try {
       const formData = new FormData();
       formData.append("image", image);
@@ -72,7 +72,7 @@ export default function Upload() {
       console.error("Error uploading image:", error);
       alert("Failed to upload image. Please try again.");
     } finally {
-      setIsLoading(false);
+
     }
   };
 

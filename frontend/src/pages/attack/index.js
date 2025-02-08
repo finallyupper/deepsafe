@@ -131,7 +131,7 @@ export default function Home() {
       }
 
       const data = await response.json(); // 서버로부터 데이터 받기
-      setSwappedImage(data.swappedImageUrl); // 워터마킹된 이미지 URL 저장
+      setSwappedImage(data.source_image_url); // 워터마킹된 이미지 URL 저장
       alert(data.message); // 성공 메시지
     } catch (error) {
       console.error("Error during watermarking:", error);
