@@ -77,7 +77,7 @@ def load_model(model_type, mode = 'eval', device=None):# Modified
         model.decoder.eval()
     return model 
 
-def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, encoded=True):
+def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, src_user, encoded=True):
     """
     Apply dual defense and save the faceswapped image (swap face a with face b)
 
@@ -106,8 +106,13 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, encoded=T
         tgt_image = tgt_image.to(device) 
 
         # Apply faceswap 
-        _, _, _image_a_deepfake = model.deepfake1(src_image, 'B') 
-        _, _, _image_b_deepfake = model.deepfake1(tgt_image, 'A')
+        assert src_user in ['cha', 'byeon', 'win', 'chu'], f"There is no user named {src_user}"
+        if src_user in ['cha', 'chu']:     
+            _, _, _image_a_deepfake = model.deepfake1(src_image, 'A') 
+            _, _, _image_b_deepfake = model.deepfake1(tgt_image, 'B')
+        else: # ['byeon', 'win']
+            _, _, _image_a_deepfake = model.deepfake1(src_image, 'B') 
+            _, _, _image_b_deepfake = model.deepfake1(tgt_image, 'A')
 
         image_a_deepfake =(_image_a_deepfake[0]  * 255).permute(1, 2, 0).detach().cpu().numpy()
         image_b_deepfake =(_image_b_deepfake[0]  * 255).permute(1, 2, 0).detach().cpu().numpy()
