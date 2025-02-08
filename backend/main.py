@@ -50,12 +50,17 @@ def save_posts(posts):
     with open(POSTS_FILE, "w") as f:
         json.dump(posts, f, indent=4)
 
-def process_url(url, base_path = "/home/yoojinoh/Others/deepsafe/backend/"): #Add(Yoojin)
-        url = url.lstrip("/")  # 경로 앞에 '/'가 있으면 제거
-        full_image_path = os.path.join(base_path, url)
-        print(f"[DEBUG] Final image path: {full_image_path}")
-        if not os.path.exists(full_image_path): raise FileNotFoundError(f"[ERROR] Image not found at: {full_image_path}")
-        return full_image_path
+
+def process_url(
+    url, base_path="/home/yoojinoh/Others/deepsafe/backend/"
+):  # Add(Yoojin)
+    url = url.lstrip("/")  # 경로 앞에 '/'가 있으면 제거
+    full_image_path = os.path.join(base_path, url)
+    print(f"[DEBUG] Final image path: {full_image_path}")
+    if not os.path.exists(full_image_path):
+        raise FileNotFoundError(f"[ERROR] Image not found at: {full_image_path}")
+    return full_image_path
+
 
 @app.post("/upload-image")
 async def upload_image(request: Request):
@@ -116,8 +121,8 @@ def upload_post(request: UploadPostRequest):
     #     os.path.dirname(image_url), "encoded_" + os.path.basename(image_url)
     # )
     encoded_image_path = os.path.join(
-    os.path.dirname(image_url), "encoded_" + os.path.basename(image_url)
-)
+        os.path.dirname(image_url), "encoded_" + os.path.basename(image_url)
+    )
 
     # [추가] encoded 이미지를 IMAGES_DIR로 이동
     final_encoded_path = os.path.join(IMAGES_DIR, os.path.basename(encoded_image_path))
@@ -146,23 +151,25 @@ def face_swap(request: FaceSwapRequest):
     swapped_image_path = os.path.join(
         IMAGES_DIR, f"swapped_{os.path.basename(request.target_image_url)}"
     )
-    
+
     for post in load_posts():
-        if post["image_url"] == request.target_image_url:
-            target_user = post["user"]
-            if target_user == "byeon" or target_user == "cha":
+        if post["image_url"] == request.source_image_url:
+            source_user = post["user"]
+            if source_user == "byeon" or source_user == "cha":
                 apply_faceswap(
                     model_type="byeon_cha",
                     swapped_image_path=(swapped_image_path),
-                    src_path=source_image_path,
-                    tgt_path=post["image_url"],
+                    src_path=post["image_url"],
+                    tgt_path=target_image_path,
+                    src_user=source_user,
                 )
-            elif target_user == "win" or target_user == "chu":
+            elif source_user == "win" or source_user == "chu":
                 apply_faceswap(
                     model_type="win_chuu",
                     swapped_image_path=(swapped_image_path),
-                    src_path=source_image_path,
-                    tgt_path=post["image_url"],
+                    src_path=post["image_url"],
+                    tgt_path=target_image_path,
+                    src_user=source_user,
                 )
             break
 
