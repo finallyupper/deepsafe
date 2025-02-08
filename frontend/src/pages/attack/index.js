@@ -170,6 +170,14 @@ export default function Home() {
       {/* Outer Container with Gradient Border */}
       <div className="w-full h-full bg-red-300 p-3">
         {/* Inner Box */}
+        {isLoading && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="flex flex-col items-center bg-white p-6 rounded-lg shadow-lg">
+              <div className="w-10 h-10 border-4 border-t-transparent border-rose-500 rounded-full animate-spin"></div>
+              <p className="mt-4 text-lg font-semibold text-gray-700">Face Swapping...</p>
+            </div>
+          </div>
+        )}
         <div className="flex h-full bg-neutral-100">
           {/* Navigation Bar */}
           <Navbar />
