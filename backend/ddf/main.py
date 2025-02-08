@@ -125,8 +125,8 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, src_user,
         image_a_deepfake =(_image_a_deepfake[0]  * 255).permute(1, 2, 0).detach().cpu().numpy()
         image_b_deepfake =(_image_b_deepfake[0]  * 255).permute(1, 2, 0).detach().cpu().numpy()
 
-        save_image(image_a_deepfake, os.path.join(swapped_image_path, 'output_A2B.png'))
-        save_image(image_b_deepfake, os.path.join(swapped_image_path, 'output_B2A.png'))
+        save_image(image_a_deepfake,swapped_image_path) # os.path.join(swapped_image_path, 'output_A2B.png'))
+        save_image(image_b_deepfake,swapped_image_path) # os.path.join(swapped_image_path, 'output_B2A.png'))
 
         if encoded:
             _pred_a_message = model.decode(_image_a_deepfake)        
@@ -139,7 +139,7 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, src_user,
             userb = find_message2user(pred_b_message)
 
             print(f'>> Someone tried to make deepfake with user {usera} and user {userb}')
-            src_output_path = os.path.join(swapped_image_path, 'output_A2B.png')
+            src_output_path = swapped_image_path # os.path.join(swapped_image_path, 'output_A2B.png')
             return [
                 {"source_image_url": src_output_path,
                  "user_prediction": f"Someone tried to make deepfake with user {usera}"}
