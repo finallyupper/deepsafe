@@ -108,6 +108,7 @@ If the generated image is damaged, it means the image is protected well.
 - `frontend` : frontend codes (stack; next.js)
 - `backend/ddf` : Dual defense code aligning with backend
 - `backend/` : backend codes (stack; FastAPI)
+- Note: You can see full training codes of faceswap in `feature/faceswap` branch.
 
 ## References 
 - Dual Defense official codes: https://github.com/Xming-zzz/DualDefense
