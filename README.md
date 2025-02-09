@@ -23,11 +23,26 @@ The misuse of deepfake technology poses serious security threats, such as identi
   <img src="./assets/pipeline.png" width="70%">
 </p>
 
-## ⚒️ How to Play
+## ⚒️ How to Play 
+Install all the requirements in `requirements.txt` with created conda env.
 ```
-npm install
+cd deepsafe/backend
+uvicorn main:app --reload 
+
+cd deepsafe/frontend 
 npm run dev
 ```
+### 1. Move to home page 🏠
+![blue](./assets/blue1.png)
+### 2. Upload your post ✍️
+Watermark will be encoded into the raw image.
+
+![upload](./assets/upload.png) 
+### 3. Try Face Swapping 🚨
+If the generated image is damaged, it means the image is protected well. 
+
+![swap](./assets/swapping.png)
+
 
 ## 📂 Dataset & Preprocessing 
 - 4 identities: Winter, Chuu, Cha Eun-woo, and Byeon Woo-seok (800 images per person, total: 4,000 images)- Extracted frames from YouTube videos (Winter: 35, Chuu: 48, Cha Eun-woo: 31, Byeon Woo-seok: 48 videos)
@@ -89,8 +104,12 @@ npm run dev
   </table>
 </p>
 
+## Directory Structure
+- `frontend` : frontend codes (stack; next.js)
+- `backend/ddf` : Dual defense code aligning with backend
+- `backend/` : backend codes (stack; FastAPI)
 
 ## References 
-- Dual Defense official codes: https://github.com/Xming-zzz/DualDefense?tab=readme-ov-file
+- Dual Defense official codes: https://github.com/Xming-zzz/DualDefense
 
 

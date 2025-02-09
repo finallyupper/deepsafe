@@ -20,7 +20,6 @@ _TEST_CONFIGS = {
     "width": 160
 }
 
-#NOTE(Yoojin): 임시 유저-메세지 데이터
 USER_WATERMARK_IDS = {
     "byeon": [0., 1., 0., 1.],
     "cha": [1., 1., 0., 0.],
@@ -116,6 +115,7 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, src_user,
         # Apply faceswap 
         assert src_user in ['cha', 'byeon', 'win', 'chu'], f"There is no user named {src_user}"
         if src_user in ['cha', 'chu']:     
+            print(f'[DEBUG]Src user is given {src_user}')
             _, _, _image_a_deepfake = model.deepfake1(src_image, 'A') 
             _, _, _image_b_deepfake = model.deepfake1(tgt_image, 'B')
         else: # ['byeon', 'win']
@@ -126,44 +126,18 @@ def apply_faceswap(model_type, swapped_image_path, src_path, tgt_path, src_user,
         image_b_deepfake =(_image_b_deepfake[0]  * 255).permute(1, 2, 0).detach().cpu().numpy()
 
         save_image(image_a_deepfake,swapped_image_path) # os.path.join(swapped_image_path, 'output_A2B.png'))
-        save_image(image_b_deepfake,swapped_image_path) # os.path.join(swapped_image_path, 'output_B2A.png'))
 
         if encoded:
             _pred_a_message = model.decode(_image_a_deepfake)        
-            _pred_b_message = model.decode(_image_b_deepfake) 
 
             pred_a_message = list(map(int, _pred_a_message[0])) 
-            pred_b_message = list(map(int, _pred_b_message[0])) 
         
             usera = find_message2user(pred_a_message)
-            userb = find_message2user(pred_b_message)
 
-            print(f'>> Someone tried to make deepfake with user {usera} and user {userb}')
+            print(f'>> Someone tried to make deepfake with user {usera} ')
             src_output_path = swapped_image_path # os.path.join(swapped_image_path, 'output_A2B.png')
-            return [
-                {"source_image_url": src_output_path,
-                 "user_prediction": f"Someone tried to make deepfake with user {usera}"}
-                 ]
-
-        # restore_original(original_src_image, _image_a_deepfake[0], src_coord, os.path.join(swapped_image_path, 'output_A2B.png')) 
-        # restore_original(original_tgt_image, _image_b_deepfake[0], tgt_coord, os.path.join(swapped_image_path, 'output_B2A.png'))  
-
-# def crop_image(image_path):
-#     image_path = os.path.join('ddf', image_path) # ADD(YOOJIN): Path error in backend
-#     cascade = cv2.CascadeClassifier('ddf/data/haarcascade_frontalface_alt.xml') 
-#     image = cv2.imread(image_path)
-#     results = cascade.detectMultiScale(image)
-
-#     if len(results) == 0:
-#         raise ValueError("No face detected in the image.")
-    
-#     crop_coord = results[0] 
-#     (x, y, w, h) = crop_coord
-#     cropped_face = image[y:y+h, x:x+w]
-#     original_image = image.copy()
-#     print("Sucessfully Cropped image")
-#     return original_image, cropped_face, crop_coord
-
+            return {"source_image_url": src_output_path,
+                 "user_prediction": f"🚨Someone tried to make deepfake with user {usera} \n➡️ PROTECTED 👩‍✈️!"}
 def restore_original(original_image, encoded_face, coord, result_path):
     (x, y, w, h) = coord 
 
@@ -216,8 +190,6 @@ def crop_image(image_path):
 
     if not detections:
         raise ValueError("No face detected in the image.")
-
-    # 첫 번째 얼굴 검출 결과 사용
     x, y, w, h = detections[0]['box']
     cropped_face = image[y:y+h, x:x+w]
 

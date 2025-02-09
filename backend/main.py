@@ -169,7 +169,7 @@ def face_swap(request: FaceSwapRequest):
                     src_user=source_user,
                 )
 
-            result.source_image_url = result.source_image_url.replace(
+            result['source_image_url'] = result['source_image_url'].replace(
                 ABSOLUTE_PATH + "/", ""
             )
             return result

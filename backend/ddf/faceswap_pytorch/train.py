@@ -54,19 +54,6 @@ images_A += images_B.mean(axis=(0, 1, 2)) - images_A.mean(axis=(0, 1, 2))
 
 model = Autoencoder().to(device)
 
-# print('===> Try resume from checkpoint')
-# if os.path.isdir('checkpoint'):
-#     try:
-#         checkpoint = torch.load('./checkpoint/autoencoder.t7')
-#         model.load_state_dict(checkpoint['state'])
-#         start_epoch = checkpoint['epoch']
-#         print('===> Load last checkpoint data')
-#     except FileNotFoundError:
-#         print('Can\'t found autoencoder.t7')
-# else:
-#     start_epoch = 0
-#     print('===> Start from scratch')
-
 start_epoch = 0
 print('===> Start from scratch')
 criterion = nn.L1Loss()
@@ -76,10 +63,6 @@ optimizer_1 = optim.Adam([{'params': model.encoder.parameters()},
 optimizer_2 = optim.Adam([{'params': model.encoder.parameters()},
                           {'params': model.decoder_B.parameters()}]
                          , lr=5e-5, betas=(0.5, 0.999))
-
-# print all the parameters im model
-# s = sum([np.prod(list(p.size())) for p in model.parameters()])
-# print('Number of params: %d' % s)
 
 if __name__ == "__main__":
 

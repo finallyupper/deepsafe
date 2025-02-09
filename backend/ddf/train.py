@@ -68,11 +68,6 @@ def train(configs,
             cage_train_x = cage_train_x.to(device)
 
             # Real=1, Fake=0
-            # trump_valid = Variable(torch.Tensor(len(trump_train_x), 1).to(device).fill_(1.0),requires_grad=False) # No Watermark image(=1)
-            # trump_fake = Variable(torch.Tensor(len(trump_train_x), 1).to(device).fill_(0.0), requires_grad=False) # Watermarked image(=0)
-            # cage_valid = Variable(torch.Tensor(len(cage_train_x), 1).to(device).fill_(1.0),requires_grad=False)
-            # cage_fake = Variable(torch.Tensor(len(cage_train_x), 1).to(device).fill_(0.0),requires_grad=False)
-
             trump_valid = torch.ones(len(trump_train_x), 1, device=device)
             trump_fake = torch.zeros(len(trump_train_x), 1, device=device)
             cage_valid = torch.ones(len(cage_train_x), 1, device=device)
@@ -169,14 +164,6 @@ def train(configs,
 
             LL_encoded_trump_original, _,   LL_trump_original, _ = ycbcr_images(trump_train_x, _encoded_trump, device) 
             LL_encoded_cage_original, _, LL_cage_original, _ = ycbcr_images(cage_train_x, _encoded_cage, device)   
-          #  print(f'DEBUG) LL requires_grad = {LL_encoded_trump_original.requires_grad}') #-> True
-            
-            # dwt = DWTForward(J=1, wave='haar', mode='zero').to(device) # J는 decomposition level
-            # LL_trump_original = get_dwt(dwt, trump_train_y) 
-            # LL_encoded_trump_original = get_dwt(dwt, encoded_trump_y)
-
-            # LL_cage_original = get_dwt(dwt, cage_train_y) 
-            # LL_encoded_cage_original = get_dwt(dwt, encoded_cage_y)
 
             # Calculate SSIM for each image pair in the low-frequency subband
             mean_ssim_trump = 0; mean_ssim_cage =0
@@ -193,7 +180,6 @@ def train(configs,
             assert mean_ssim_trump < 1 and mean_ssim_cage <1, f"[WARNING] SSIM cal is wrong, got {mean_ssim_trump, mean_ssim_cage}"
             ssim_loss = (1 - mean_ssim_trump) + (1 - mean_ssim_cage) 
             ssim_loss /= 2
-          #  print(f'>>DEBUG : SSIM LOSS = {ssim_loss.requires_grad}') # =True
           
             # 3-3. Original domain attack loss
             # MSE Loss btw swap images (Eq 10, 11, 12)
@@ -243,14 +229,8 @@ def train(configs,
             nn.utils.clip_grad_norm_(model.parameters(), clip)
             loss.backward()
             optimizer.step()
-            train_size += trump_train_x.shape[0] + cage_train_x.shape[0]
-    
+            train_size += trump_train_x.shape[0] + cage_train_x.shape[0] 
         # End of for loop
-        # train_image_loss /= train_size
-        # train_image_df_loss /= train_size
-        # train_gan_loss /= train_size 
-        # train_message_loss /= train_size
-        # train_ssim_loss /= train_size
 
         train_loss_plot.append(train_message_loss)
         train_ed_loss.append(train_image_loss)
@@ -330,10 +310,6 @@ def train(configs,
                 val_image_loss += encoded_loss.item()
                 val_image_df_loss += image_adv_logits_loss.item()
                 val_size += trump_val_x.shape[0] + cage_val_x.shape[0]
-            
-            # val_image_loss /= val_size
-            # val_image_df_loss /= val_size
-            # val_message_loss /= val_size
 
             val_message_acc = val_message_correct / (val_size * message_size)
             val_df_message_acc = val_df_message_correct / (val_size * message_size)

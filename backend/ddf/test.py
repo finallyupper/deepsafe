@@ -246,8 +246,8 @@ def main():
     model.decoder.eval()
 
     print('Split & Load dataset') 
-    _, _, trump_test_dataset = split_dataset(trump_path, test_transform=transform_test, val_ratio=0.0, test_ratio=1.0)
-    _, _, cage_test_dataset = split_dataset(cage_path, test_transform=transform_test, val_ratio=0.0, test_ratio=1.0) 
+    _, _, trump_test_dataset = split_dataset(trump_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1)
+    _, _, cage_test_dataset = split_dataset(cage_path, test_transform=transform_test, val_ratio=0.1, test_ratio=0.1) 
     trump_test_loader = DataLoader(trump_test_dataset, batch_size=batch_size, shuffle=False)
     cage_test_loader = DataLoader(cage_test_dataset, batch_size=batch_size, shuffle=False)
 

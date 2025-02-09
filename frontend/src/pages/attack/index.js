@@ -19,7 +19,7 @@ export default function Home() {
   const [showPostModal, setShowPostModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState("");
   const [imageUser, setImageUser] = useState("");
-  
+  const [message, setMessage] = useState("");
   const [publicImages, setPublicImages] = useState({});
 
   useEffect(() => {
@@ -132,7 +132,8 @@ export default function Home() {
 
       const data = await response.json(); // 서버로부터 데이터 받기
       setSwappedImage(data.source_image_url); // 워터마킹된 이미지 URL 저장
-      alert(data.message); // 성공 메시지
+      alert(data.user_prediction); // 성공 메시지
+      setMessage(data.user_prediction);
     } catch (error) {
       console.error("Error during watermarking:", error);
       alert("Failed to watermark the image. Please try again.");
@@ -342,11 +343,15 @@ export default function Home() {
               <LoadingSpinner />
             ) : (
               swappedImage && (
-                <img
-                  src={`http://localhost:8000${swappedImage}`}
-                  alt="Swapped Result"
-                  className="w-full h-full object-cover border-2 border-rose-400 mt-4"
-                />
+                <div>
+                  <p className="text-sm font-semibold">{message}</p>
+                  <img
+                    src={`http://localhost:8000/${swappedImage}`}
+                    alt="Swapped Result"
+                    className="w-full h-full object-cover border-2 border-rose-400 mt-4"
+                  />
+                </div>
+                
               )
             )}
           </div>)}

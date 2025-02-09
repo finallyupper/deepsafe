@@ -45,9 +45,6 @@ class CustomDataset(Dataset):
         if self.type == "train":
             if self.transform:
                 image = self.transform(image)
-                # image, _ = random_warp(image)#Added(Yoojin)
-                # if isinstance(image, np.ndarray):  # If random_warp returned a numpy array
-                #     image = torch.from_numpy(image).permute(2, 0, 1) 
         if self.type=="test":
             if self.transform:
                 image = self.transform(image) 
