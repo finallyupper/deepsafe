@@ -71,13 +71,17 @@ If the generated image is damaged, it means the image is protected well.
 </p>
 
 ### 2) Dual Defense 
+<p align="center">
+  <img src="./assets/ddf_train_loss_images.png" width="45%">
+  <img src="./assets/ddf_val_loss_acc.png" width="45%">
+</p>
 - loss
     - alpha * `image_loss` + beta * `message_loss`
         - `image_loss` = lambda_en * image_encoded_loss + lambda_s * ssim_loss + lambda_adv * image_adv_logits_loss
         - `message_loss` = L_wm_en + L_wm_adv
 - lambda(beta)=1, alpha=2
 - Train:Valid:Test=0.8:0.1:0.1
-- message size = 4 (16bits, watermark information)
+- message size = 4 (4bits, watermark information)
 - batch size = 16
 
 
